@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Homotecias — Liceo de Tarrazú</title>
+<style>
+  :root {
+    --bg: #0b0f14;
+    --panel: #121821;
+    --ink: #eaf2ff;
+    --muted: #9bb0c7;
+    --accent: #76a9ff;
+    --accent-2: #7fffd4;
+    --danger: #ff7a7a;
+    --grid: #223042;
+    --grid-strong: #40526b;
+    --axis: #ffffff;
+    --box: rgba(10,15,21,0.85);
+    --box-border: #223042;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.35 system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+  header { padding: 16px 18px; background: var(--panel); border-bottom: 1px solid #233143; display: grid; gap: 6px; }
+  header h1 { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: .2px;}
+  header .subtitle { color: var(--muted); font-size: 14px; }
+
+  .wrap { display: grid; grid-template-columns: 360px 1fr; min-height: calc(100% - 72px); }
+  .left { border-right: 1px solid #233143; padding: 14px; background: var(--panel); }
+  .right { position: relative; overflow: hidden; }
+  .group { border: 1px solid #233143; border-radius: 12px; padding: 12px; margin-bottom: 12px; background: #0e141d; }
+  .group h3 { margin: 0 0 10px; font-size: 15px; color: var(--accent); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+  label { font-size: 13px; color: var(--muted); }
+  input[type="text"], input[type="number"] { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid #2a3951; background: #101723; color: var(--ink); }
+  input:invalid { outline: 2px solid var(--danger); }
+  .btn { background: #1a2331; color: var(--ink); border: 1px solid #2a3951; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: 0.15s ease; font-weight: 600; font-size: 14px; }
+  .btn:hover { filter: brightness(1.15); }
+  .btn.primary { background: #1e2a3b; border-color: #39567c; }
+  .btn.ghost { background: transparent; border-color: #39567c; }
+  .btn.danger { background: #3b1e25; border-color: #7c3949; }
+  .btn.full { width: 100%; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  .kbd { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+  .kbd .key { padding: 6px 0; text-align: center; border-radius: 8px; border: 1px solid #2a3951; background: #0f1520; cursor: pointer; user-select: none; }
+
+  canvas { width: 100%; height: 100%; display: block; background: #0a0f15; }
+  .hud { position: absolute; left: 12px; top: 12px; background: var(--box); border: 1px solid var(--box-border); padding: 10px; border-radius: 10px; font-size: 13px; color: var(--muted); max-width: 44ch;}
+  .legend { margin-top: 6px; display: grid; gap: 2px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* NUEVO: Recuadro de medidas en la zona de graficación */
+  .measurebox {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    background: var(--box);
+    border: 1px solid var(--box-border);
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--ink);
+    min-width: 240px;
+    max-width: 320px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+  .measurebox h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    color: #c9d8f3;
+  }
+  .measurebox .row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    margin: 6px 0 2px;
+  }
+  .measurebox .tag {
+    display: inline-block;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--box-border);
+    background: #0f1722;
+    color: #a6e1ff;
+    margin-bottom: 4px;
+  }
+
+  .footerbar { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; }
+  .notice { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .small { font-size: 12px; color: var(--muted); }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    header, .left { background: #fff; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .right canvas { background: #fff; }
+    .footerbar, .kbd { display: none !important; }
+    .hud, .measurebox { background: #fff; border-color: #999; color: #000; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Homotecias — Liceo de Tarrazú</h1>
+    <div class="subtitle"><strong>Profesor Mauricio Gamboa Gamboa</strong> — Secciones <strong>11.2</strong> y <strong>11.3</strong></div>
+    <div class="subtitle">Práctica: <strong>Construcción paso a paso de A′, B′, C′</strong></div>
+  </header>
+
+  <div class="wrap">
+    <aside class="left" aria-label="Panel de control">
+      <div class="group">
+        <h3>Datos iniciales</h3>
+        <div class="row">
+          <label for="inO">Centro O (x,y)</label>
+          <input id="inO" type="text" value="(0,0)" autocomplete="off" inputmode="text" />
+        </div>
+        <div class="row">
+          <label for="inK">Razón k</label>
+          <input id="inK" type="number" step="0.1" value="2" inputmode="decimal" />
+        </div>
+        <div class="grid2">
+          <button class="btn" id="btnAplicar">Aplicar O y k</button>
+          <button class="btn ghost" id="btnRandom">Nuevo triángulo</button>
+        </div>
+        <div class="notice">Consejo: puedes arrastrar A, B, C y O directamente.</div>
+      </div>
+
+      <div class="group">
+        <h3>Teclado rápido (móviles)</h3>
+        <div class="kbd" id="keypad"></div>
+        <div class="small">Pulsa dentro de O o k y usa estas teclas (incluye <strong>−</strong>).</div>
+      </div>
+
+      <div class="group">
+        <h3>Pasos guiados</h3>
+        <div class="grid3" style="margin-bottom:8px;">
+          <button class="btn" id="step1">1) Línea OA</button>
+          <button class="btn" id="step2">2) Línea OB</button>
+          <button class="btn" id="step3">3) Línea OC</button>
+        </div>
+        <div class="grid3" style="margin-bottom:8px;">
+          <button class="btn" id="step4">4) Medir |OA|</button>
+          <button class="btn" id="step5">5) k·|OA|</button>
+          <button class="btn" id="step6">6) Construir A′</button>
+        </div>
+        <div class="grid3" style="margin-bottom:8px;">
+          <button class="btn" id="step7">7) Medir |OB|</button>
+          <button class="btn" id="step8">8) k·|OB|</button>
+          <button class="btn" id="step9">9) Construir B′</button>
+        </div>
+        <div class="grid3" style="margin-bottom:8px;">
+          <button class="btn" id="step10">10) Medir |OC|</button>
+          <button class="btn" id="step11">11) k·|OC|</button>
+          <button class="btn" id="step12">12) Construir C′</button>
+        </div>
+        <div class="grid2" style="margin-bottom:8px;">
+          <button class="btn primary" id="step13">13) Solo triángulos</button>
+          <button class="btn ghost" id="pReset">Reiniciar pasos</button>
+        </div>
+        <div class="grid2">
+          <button class="btn" id="pTodo">Todo</button>
+          <button class="btn danger" id="btnResetAll">Reiniciar todo</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>Exportar</h3>
+        <div class="grid2">
+          <button class="btn" id="btnDownload">Descargar PNG</button>
+          <button class="btn" id="btnPrint">Imprimir</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>Ayuda</h3>
+        <div class="small">
+          Homotecia de centro <b>O</b> y razón <b>k</b>:
+          <div style="margin-top:6px">A′ = O + k·(A − O), B′ = O + k·(B − O), C′ = O + k·(C − O)</div>
+          <div style="margin-top:6px">Si k &gt; 0, A′ está en la misma dirección de <b>OA</b>; si k &lt; 0, en la contraria.</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="right" aria-label="Plano cartesiano">
+      <canvas id="cv"></canvas>
+      <div class="hud" id="hud"></div>
+
+      <!-- NUEVO: Recuadro de medidas en la zona de graficación -->
+      <div class="measurebox" id="measureBox">
+        <h4>Medidas</h4>
+        <div class="row" id="measureContent">
+          <!-- Contenido dinámico -->
+        </div>
+      </div>
+
+      <div class="footerbar">
+        <button class="btn ghost" id="btnZoomOut" title="Alejar">−</button>
+        <button class="btn ghost" id="btnZoomReset" title="Escala 1">1:1</button>
+        <button class="btn ghost" id="btnZoomIn" title="Acercar">+</button>
+      </div>
+    </main>
+  </div>
+
+<script>
+(() => {
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const hud = document.getElementById('hud');
+  const measureBox = document.getElementById('measureBox');
+  const measureContent = document.getElementById('measureContent');
+  const inO = document.getElementById('inO');
+  const inK = document.getElementById('inK');
+
+  // Botones
+  const btnAplicar = document.getElementById('btnAplicar');
+  const btnRandom = document.getElementById('btnRandom');
+  const btnDownload = document.getElementById('btnDownload');
+  const btnPrint = document.getElementById('btnPrint');
+  const btnZoomIn = document.getElementById('btnZoomIn');
+  const btnZoomOut = document.getElementById('btnZoomOut');
+  const btnZoomReset = document.getElementById('btnZoomReset');
+
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+  const step4 = document.getElementById('step4');
+  const step5 = document.getElementById('step5');
+  const step6 = document.getElementById('step6');
+  const step7 = document.getElementById('step7');
+  const step8 = document.getElementById('step8');
+  const step9 = document.getElementById('step9');
+  const step10 = document.getElementById('step10');
+  const step11 = document.getElementById('step11');
+  const step12 = document.getElementById('step12');
+  const step13 = document.getElementById('step13');
+  const pTodo = document.getElementById('pTodo');
+  const pReset = document.getElementById('pReset');
+  const btnResetAll = document.getElementById('btnResetAll');
+
+  const dpi = () => window.devicePixelRatio || 1;
+
+  const state = {
+    unit: 40,
+    points: {
+      A: { x: -3, y: 2 },
+      B: { x:  2, y: 3 },
+      C: { x:  1, y:-2 },
+      O: { x:  0, y: 0 },
+    },
+    k: 2,
+    show: {
+      OA:false, OB:false, OC:false,
+      distOA:false, kOA:false, Apr:false,
+      distOB:false, kOB:false, Bpr:false,
+      distOC:false, kOC:false, Cpr:false,
+      triABCp:false,
+      trianglesOnly:false
+    }
+  };
+
+  // Teclado móvil
+  const keypad = document.getElementById('keypad');
+  const keys = ['(', ')', ',', '−', '7', '8', '9', '⌫', '4', '5', '6', ' ', '1', '2', '3', ' ', '0', '.', ' ', ' '];
+  let focusedInput = null;
+  [inO, inK].forEach(el => el.addEventListener('focus', () => focusedInput = el));
+  const mkKey = (txt) => {
+    const b = document.createElement('div');
+    b.className = 'key'; b.textContent = txt.trim() === '' ? ' ' : txt;
+    b.addEventListener('click', () => {
+      if (!focusedInput) return;
+      if (txt === '⌫') { focusedInput.value = focusedInput.value.slice(0, -1); focusedInput.dispatchEvent(new Event('input')); return; }
+      focusedInput.value += (txt === '−') ? '-' : txt;
+      focusedInput.dispatchEvent(new Event('input'));
+    });
+    return b;
+  };
+  keys.forEach(k => keypad.appendChild(mkKey(k)));
+
+  function resize() {
+    const rect = cv.getBoundingClientRect();
+    cv.width = Math.floor(rect.width * dpi());
+    cv.height = Math.floor(rect.height * dpi());
+    ctx.setTransform(dpi(), 0, 0, dpi(), 0, 0);
+    draw();
+  }
+  window.addEventListener('resize', resize);
+
+  function toCanvas(p) {
+    const cx = cv.width / dpi() / 2;
+    const cy = cv.height / dpi() / 2;
+    return { x: cx + p.x * state.unit, y: cy - p.y * state.unit };
+  }
+  function toWorld(pt) {
+    const cx = cv.width / dpi() / 2;
+    const cy = cv.height / dpi() / 2;
+    return { x: (pt.x - cx) / state.unit, y: (cy - pt.y) / state.unit };
+  }
+
+  function drawGrid() {
+    const w = cv.width / dpi(); const h = cv.height / dpi();
+    ctx.clearRect(0,0,w,h);
+
+    // Cuadrícula
+    ctx.save();
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid');
+    ctx.lineWidth = 1;
+
+    const cx = w/2, cy = h/2;
+    const step = state.unit;
+    const left = -Math.ceil(cx/step), right = Math.ceil(cx/step);
+    const bottom = -Math.ceil(cy/step), top = Math.ceil(cy/step);
+
+    ctx.beginPath();
+    for (let i = left; i <= right; i++) { const x = cx + i*step; ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+    for (let j = bottom; j <= top; j++) { const y = cy + j*step; ctx.moveTo(0, y); ctx.lineTo(w, y); }
+    ctx.stroke();
+
+    // Ejes (reforzados)
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-strong');
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--axis');
+    ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+
+    ctx.fillStyle = '#bcd3ff'; ctx.font = '12px system-ui, Arial';
+    for (let i = left; i <= right; i++) if (i!==0) ctx.fillText(i.toString(), cx + i*step + 3, cy-4);
+    for (let j = bottom; j <= top; j++) if (j!==0) ctx.fillText(j.toString(), cx+4, cy - j*step - 2);
+    ctx.restore();
+  }
+
+  function drawPoint(P, label, color='#7fffd4') {
+    const p = toCanvas(P);
+    ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
+    ctx.font = '14px system-ui, Arial'; ctx.fillStyle = '#eaf2ff'; ctx.fillText(label, p.x + 8, p.y - 8);
+  }
+
+  function drawSegment(P, Q, color='#6fb3ff', dash=[]) {
+    const p = toCanvas(P), q = toCanvas(Q);
+    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawLineThrough(P, Q, color='#ffd166', dash=[6,6]) {
+    const w = cv.width / dpi(); const h = cv.height / dpi();
+    const p = toCanvas(P), q = toCanvas(Q);
+    const dx = q.x - p.x, dy = q.y - p.y;
+    if (Math.abs(dx) < 1e-9 && Math.abs(dy) < 1e-9) return;
+    const L = Math.max(w,h) * 1.5;
+    const norm = Math.hypot(dx, dy);
+    const ux = dx / norm, uy = dy / norm;
+    const a = { x: p.x - ux*L, y: p.y - uy*L };
+    const b = { x: p.x + ux*L, y: p.y + uy*L };
+    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  function dist(P,Q){ return Math.hypot(P.x-Q.x, P.y-Q.y); }
+  function homotecia(O, P, k){ return { x: O.x + k*(P.x - O.x), y: O.y + k*(P.y - O.y) }; }
+
+  function fmt(v) { return Math.abs(v) < 1e-10 ? '0' : (Math.round(v*1000)/1000).toString(); }
+
+  // Construye el contenido del recuadro de medidas
+  function updateMeasureBox({A,B,C,O}, k) {
+    const oa = dist(O,A), ob = dist(O,B), oc = dist(O,C);
+    const html = [
+      `<span class="tag">Centro O = (${fmt(O.x)}, ${fmt(O.y)})</span>`,
+      `<div>|OA| = <b>${fmt(oa)}</b> u &nbsp; → &nbsp; k·|OA| = <b>${fmt(Math.abs(k*oa))}</b> u</div>`,
+      `<div>|OB| = <b>${fmt(ob)}</b> u &nbsp; → &nbsp; k·|OB| = <b>${fmt(Math.abs(k*ob))}</b> u</div>`,
+      `<div>|OC| = <b>${fmt(oc)}</b> u &nbsp; → &nbsp; k·|OC| = <b>${fmt(Math.abs(k*oc))}</b> u</div>`
+    ].join('\\n');
+    measureContent.innerHTML = html;
+  }
+
+  function buildHud({A,B,C,O}, {Apr,Bpr,Cpr}) {
+    const list = [];
+    list.push(`<div><b>k</b> = ${fmt(state.k)}</div>`);
+    list.push(`<div><b>O</b> = (${fmt(O.x)}, ${fmt(O.y)})</div>`);
+    list.push(`<div><b>A</b> = (${fmt(A.x)}, ${fmt(A.y)}) &nbsp; <b>B</b> = (${fmt(B.x)}, ${fmt(B.y)}) &nbsp; <b>C</b> = (${fmt(C.x)}, ${fmt(C.y)})</div>`);
+    list.push(`<div><b>A′</b> = (${fmt(Apr.x)}, ${fmt(Apr.y)}) &nbsp; <b>B′</b> = (${fmt(Bpr.x)}, ${fmt(Bpr.y)}) &nbsp; <b>C′</b> = (${fmt(Cpr.x)}, ${fmt(Cpr.y)})</div>`);
+    list.push(`<div class="legend" style="margin-top:6px">
+      <span class="chip"><span class="dot" style="background:#6fb3ff"></span>Triángulo ABC</span>
+      <span class="chip"><span class="dot" style="background:#8bd3ff"></span>Triángulo A′B′C′</span>
+      <span class="chip"><span class="dot" style="background:#ffdd7f"></span>Centro O</span>
+    </div>`);
+    return list.join('\\n');
+  }
+
+  function draw() {
+    drawGrid();
+    const {A,B,C,O} = state.points;
+
+    // Triángulo original
+    drawSegment(A,B,'#6fb3ff');
+    drawSegment(B,C,'#6fb3ff');
+    drawSegment(C,A,'#6fb3ff');
+
+    // Imágenes
+    const Apr = homotecia(O, A, state.k);
+    const Bpr = homotecia(O, B, state.k);
+    const Cpr = homotecia(O, C, state.k);
+
+    // Paso 13: solo triángulos, pero puntos y centro visibles.
+    if (state.show.trianglesOnly) {
+      if (state.show.triABCp) {
+        drawSegment(Apr, Bpr, '#8bd3ff');
+        drawSegment(Bpr, Cpr, '#8bd3ff');
+        drawSegment(Cpr, Apr, '#8bd3ff');
+      }
+      drawPoint(A, 'A', '#7fffd4');
+      drawPoint(B, 'B', '#7fffd4');
+      drawPoint(C, 'C', '#7fffd4');
+      drawPoint(O, 'O', '#ffdd7f');
+      drawPoint(Apr, "A′", '#4ade80');
+      drawPoint(Bpr, "B′", '#c084fc');
+      drawPoint(Cpr, "C′", '#f472b6');
+
+      hud.innerHTML = buildHud({A,B,C,O}, {Apr,Bpr,Cpr});
+      updateMeasureBox({A,B,C,O}, state.k); // Medidas SIEMPRE en recuadro
+      return;
+    }
+
+    // Líneas por O (auxiliares)
+    if (state.show.OA) drawLineThrough(O, A, '#ffd166');
+    if (state.show.OB) drawLineThrough(O, B, '#ffd166');
+    if (state.show.OC) drawLineThrough(O, C, '#ffd166');
+
+    // Puntos base
+    drawPoint(A, 'A', '#7fffd4');
+    drawPoint(B, 'B', '#7fffd4');
+    drawPoint(C, 'C', '#7fffd4');
+    drawPoint(O, 'O', '#ffdd7f');
+
+    // Medidas sobre el canvas (según pasos). El recuadro se actualiza SIEMPRE.
+    if (state.show.distOA) drawLineThrough(O, A, '#22d3ee', [10,6]); // referencia
+    if (state.show.kOA)   drawSegment(O, Apr, '#00e5ff', [4,4]);
+
+    if (state.show.distOB) drawLineThrough(O, B, '#f59e0b', [10,6]);
+    if (state.show.kOB)   drawSegment(O, Bpr, '#ffd166', [4,4]);
+
+    if (state.show.distOC) drawLineThrough(O, C, '#ef4444', [10,6]);
+    if (state.show.kOC)   drawSegment(O, Cpr, '#fb7185', [4,4]);
+
+    // Puntos imagen y triángulo imagen
+    if (state.show.Apr) { drawSegment(O, Apr, '#4ade80'); drawPoint(Apr, "A′", '#4ade80'); }
+    if (state.show.Bpr) { drawSegment(O, Bpr, '#c084fc'); drawPoint(Bpr, "B′", '#c084fc'); }
+    if (state.show.Cpr) { drawSegment(O, Cpr, '#f472b6'); drawPoint(Cpr, "C′", '#f472b6'); }
+
+    if (state.show.triABCp || (state.show.Apr && state.show.Bpr && state.show.Cpr)) {
+      drawSegment(Apr, Bpr, '#8bd3ff');
+      drawSegment(Bpr, Cpr, '#8bd3ff');
+      drawSegment(Cpr, Apr, '#8bd3ff');
+    }
+
+    // HUD general
+    hud.innerHTML = buildHud({A,B,C,O}, {Apr,Bpr,Cpr});
+    // Medidas SIEMPRE en recuadro
+    updateMeasureBox({A,B,C,O}, state.k);
+  }
+
+  function parseCoord(str) {
+    const s = str.trim().replace(/[()]/g,'').replace(/−/g,'-');
+    const parts = s.split(/[;,]/).map(t => t.trim()).filter(Boolean);
+    if (parts.length !== 2) return null;
+    const x = Number(parts[0]); const y = Number(parts[1]);
+    if (!isFinite(x) || !isFinite(y)) return null;
+    return { x, y };
+  }
+
+  function applyInputs() {
+    const o = parseCoord(inO.value);
+    if (o) state.points.O = o;
+    const k = Number(String(inK.value).replace('−','-'));
+    if (isFinite(k)) state.k = k;
+    draw();
+  }
+
+  function randomTriangle() {
+    function rnd(){ return Math.floor(Math.random()*9) - 4; }
+    let A,B,C; let tries = 0;
+    do {
+      A = {x:rnd(), y:rnd()};
+      B = {x:rnd(), y:rnd()};
+      C = {x:rnd(), y:rnd()};
+      tries++;
+    } while (Math.abs( (B.x-A.x)*(C.y-A.y) - (B.y-A.y)*(C.x-A.x) ) < 1e-6 && tries < 999);
+    state.points.A = A; state.points.B = B; state.points.C = C;
+    draw();
+  }
+
+  function resetSteps() {
+    state.show = {
+      OA:false, OB:false, OC:false,
+      distOA:false, kOA:false, Apr:false,
+      distOB:false, kOB:false, Bpr:false,
+      distOC:false, kOC:false, Cpr:false,
+      triABCp:false,
+      trianglesOnly:false
+    };
+    draw();
+  }
+
+  // Drag universal A,B,C,O
+  function nearestHandle(pt) {
+    const {A,B,C,O} = state.points;
+    const handles = [ ['A',A], ['B',B], ['C',C], ['O',O] ];
+    let best = null, bestD = 1e9;
+    for (const [name,P] of handles) {
+      const p = toCanvas(P);
+      const d = Math.hypot(pt.x - p.x, pt.y - p.y);
+      if (d < bestD && d <= 14) { bestD = d; best = name; }
+    }
+    return best;
+  }
+  let dragging = null;
+  cv.addEventListener('pointerdown', (e) => {
+    cv.setPointerCapture(e.pointerId);
+    const rect = cv.getBoundingClientRect();
+    const pCss = { x: (e.clientX-rect.left), y: (e.clientY-rect.top) };
+    const h = nearestHandle(pCss);
+    if (h) dragging = h;
+  });
+  cv.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const rect = cv.getBoundingClientRect();
+    const pCss = { x: (e.clientX-rect.left), y: (e.clientY-rect.top) };
+    const w = toWorld(pCss);
+    state.points[dragging] = { x: Math.round(w.x*100)/100, y: Math.round(w.y*100)/100 };
+    draw();
+  });
+  cv.addEventListener('pointerup', ()=>{ dragging = null; });
+
+  // Pasos
+  step1.addEventListener('click', ()=>{ state.show.OA = true; draw(); });
+  step2.addEventListener('click', ()=>{ state.show.OB = true; draw(); });
+  step3.addEventListener('click', ()=>{ state.show.OC = true; draw(); });
+
+  step4.addEventListener('click', ()=>{ state.show.distOA = true; draw(); });
+  step5.addEventListener('click', ()=>{ state.show.kOA = true; draw(); });
+  step6.addEventListener('click', ()=>{ state.show.Apr = true; draw(); });
+
+  step7.addEventListener('click', ()=>{ state.show.distOB = true; draw(); });
+  step8.addEventListener('click', ()=>{ state.show.kOB = true; draw(); });
+  step9.addEventListener('click', ()=>{ state.show.Bpr = true; draw(); });
+
+  step10.addEventListener('click', ()=>{ state.show.distOC = true; draw(); });
+  step11.addEventListener('click', ()=>{ state.show.kOC = true; draw(); });
+  step12.addEventListener('click', ()=>{ state.show.Cpr = true; draw(); });
+
+  // Paso 13: Solo triángulos (muestra O, A, B, C y A′, B′, C′ y medidas en recuadro)
+  step13.addEventListener('click', ()=>{
+    state.show = {
+      OA:false, OB:false, OC:false,
+      distOA:false, kOA:false, Apr:false,
+      distOB:false, kOB:false, Bpr:false,
+      distOC:false, kOC:false, Cpr:false,
+      triABCp:true,
+      trianglesOnly:true
+    };
+    draw();
+  });
+
+  pTodo.addEventListener('click', ()=>{
+    state.show = {
+      OA:true, OB:true, OC:true,
+      distOA:true, kOA:true, Apr:true,
+      distOB:true, kOB:true, Bpr:true,
+      distOC:true, kOC:true, Cpr:true,
+      triABCp:true,
+      trianglesOnly:false
+    };
+    draw();
+  });
+  pReset.addEventListener('click', resetSteps);
+
+  // Aplicar/Random/Reset
+  btnAplicar.addEventListener('click', applyInputs);
+  btnRandom.addEventListener('click', ()=>{ randomTriangle(); resetSteps(); });
+  btnResetAll.addEventListener('click', ()=>{
+    inO.value = '(0,0)'; inK.value = 2;
+    state.points.O = {x:0,y:0}; state.k = 2;
+    randomTriangle(); resetSteps();
+  });
+
+  // Zoom
+  btnZoomIn.addEventListener('click', ()=>{ state.unit = Math.min(140, Math.round(state.unit*1.2)); draw(); });
+  btnZoomOut.addEventListener('click', ()=>{ state.unit = Math.max(20, Math.round(state.unit/1.2)); draw(); });
+  btnZoomReset.addEventListener('click', ()=>{ state.unit = 40; draw(); });
+
+  // Exportar
+  btnDownload.addEventListener('click', ()=>{
+    const w = cv.width; const h = cv.height;
+    const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = h;
+    const tctx = tmp.getContext('2d'); tctx.drawImage(cv, 0, 0);
+    const link = document.createElement('a');
+    link.download = 'homotecia.png';
+    link.href = tmp.toDataURL('image/png');
+    link.click();
+  });
+  btnPrint.addEventListener('click', ()=> window.print());
+
+  // Inputs en vivo
+  inO.addEventListener('input', ()=>{
+    const o = parseCoord(inO.value);
+    if (o){ state.points.O = o; draw(); }
+  });
+  inK.addEventListener('input', ()=>{
+    const k = Number(String(inK.value).replace('−','-'));
+    if (isFinite(k)){ state.k = k; draw(); }
+  });
+
+  // Inicializar
+  resize();
+  randomTriangle();
+})();
+</script>
+</body>
+</html>
