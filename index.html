@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>Liceo de Tarrazú | Matemática Décimo 2026</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body{
       margin:0;
@@ -12,7 +13,6 @@
       color:#1a1a1a;
     }
     header{
-      
       background:#0b3c5d;
       color:white;
       padding:30px 20px;
@@ -46,32 +46,87 @@
       color:#555;
       font-size:0.9em;
     }
+
+    /* ====== PIZARRA ====== */
+    #board{
+      border: 2px solid #000;
+      border-radius: 10px;
+      touch-action: none; /* clave para stylus/táctil */
+      background: white;
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .pizarra-tools{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .pizarra-tools button{
+      padding:8px 12px;
+      border:1px solid #c9c9c9;
+      background:#ffffff;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:bold;
+    }
+    .pizarra-tools button:hover{
+      filter: brightness(0.98);
+    }
+
+    /* ====== GALERÍA ====== */
+    #gallery{
+      margin-top:10px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .thumb{
+      width:190px;
+      border:1px solid #d9d9d9;
+      border-radius:10px;
+      padding:10px;
+      background:#fff;
+      box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    }
+    .thumb img{
+      width:100%;
+      border-radius:8px;
+      border:1px solid #eee;
+      display:block;
+    }
+    .thumb .meta{
+      margin-top:8px;
+      font-size:0.85em;
+      color:#333;
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .thumb .actions{
+      margin-top:8px;
+      display:flex;
+      gap:8px;
+    }
+    .thumb .actions button{
+      flex:1;
+      padding:6px 8px;
+      border:1px solid #c9c9c9;
+      background:#ffffff;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:bold;
+      font-size:0.85em;
+    }
   </style>
 </head>
-
-  <h2>Pizarra</h2>
-<canvas id="board" width="900" height="450"></canvas>
-
-<div style="margin-top:10px;">
-  <button id="clearBtn" type="button">Borrar</button>
-  <button id="saveBtn" type="button">Guardar</button>
-</div>
-
-<style>
-  #board{
-    border: 2px solid #000;
-    border-radius: 10px;
-    touch-action: none;
-    background: white;
-  }
-</style>
-
-
 
 <body>
 
 <header>
-   <img src="Escudo.png" alt="Liceo de Tarrazú" height="300">
+  <img src="Escudo.png" alt="Liceo de Tarrazú" height="300">
   <h1>Liceo de Tarrazú</h1>
   <h2>Curso Lectivo 2026</h2>
   <h3>Matemática – Décimo Año</h3>
@@ -80,9 +135,8 @@
 <nav>
   <a href="#">Inicio</a>
   <a href="folleto.html">Folleto</a>
-<a href="apoyos.html">Apoyos</a>
-<a href="practica.html">Práctica</a>
- 
+  <a href="apoyos.html">Apoyos</a>
+  <a href="practica.html">Práctica</a>
 </nav>
 
 <main>
@@ -103,63 +157,183 @@
     Este sitio no sustituye las lecciones presenciales, sino que las
     complementa.
   </p>
- <script>
-  const canvas = document.getElementById("board");
-  const ctx = canvas.getContext("2d");
 
-  ctx.lineWidth = 3;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  <hr>
 
-  let drawing = false;
+  <h2>Pizarra</h2>
+  <p>Escribe con mouse, dedo o lápiz. Puedes borrar, guardar y ver tus guardados abajo.</p>
 
-  function getPos(e){
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
+  <!-- Canvas -->
+  <canvas id="board" width="900" height="450"></canvas>
 
-  canvas.addEventListener("pointerdown", (e) => {
-    drawing = true;
-    canvas.setPointerCapture(e.pointerId);
-    const p = getPos(e);
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-  });
+  <!-- Herramientas -->
+  <div class="pizarra-tools">
+    <button id="clearBtn" type="button">Borrar pizarra</button>
+    <button id="saveBtn" type="button">Guardar (descarga + galería)</button>
+    <button id="clearSavedBtn" type="button">Limpiar guardados</button>
+  </div>
 
-  canvas.addEventListener("pointermove", (e) => {
-    if (!drawing) return;
-    const p = getPos(e);
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-  });
+  <h3>Mis guardados</h3>
+  <div id="gallery"></div>
 
-  canvas.addEventListener("pointerup", () => drawing = false);
-  canvas.addEventListener("pointercancel", () => drawing = false);
+  <script>
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
 
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  });
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
-  // ✅ BOTÓN GUARDAR (descarga un PNG con fecha y hora)
-  document.getElementById("saveBtn").addEventListener("click", () => {
-    const link = document.createElement("a");
+    let drawing = false;
 
-    const now = new Date();
-    const fecha = now.getFullYear() + "_" +
-                  String(now.getMonth() + 1).padStart(2, "0") + "_" +
-                  String(now.getDate()).padStart(2, "0") + "_" +
-                  String(now.getHours()).padStart(2, "0") + "_" +
-                  String(now.getMinutes()).padStart(2, "0");
+    function getPos(e){
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
 
-    link.download = "Pizarra_" + fecha + ".png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  });
-</script>
+    // ====== DIBUJO ======
+    canvas.addEventListener("pointerdown", (e) => {
+      drawing = true;
+      canvas.setPointerCapture(e.pointerId);
+      const p = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    });
 
+    canvas.addEventListener("pointermove", (e) => {
+      if (!drawing) return;
+      const p = getPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    });
+
+    canvas.addEventListener("pointerup", () => drawing = false);
+    canvas.addEventListener("pointercancel", () => drawing = false);
+
+    // ====== BOTÓN BORRAR ======
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // ====== GALERÍA (localStorage) ======
+    const gallery = document.getElementById("gallery");
+    const KEY = "pizarra_imgs_v1";
+
+    function nowLabel(){
+      const n = new Date();
+      const yyyy = n.getFullYear();
+      const mm = String(n.getMonth() + 1).padStart(2,"0");
+      const dd = String(n.getDate()).padStart(2,"0");
+      const hh = String(n.getHours()).padStart(2,"0");
+      const mi = String(n.getMinutes()).padStart(2,"0");
+      return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+    }
+
+    function loadSaved(){
+      return JSON.parse(localStorage.getItem(KEY) || "[]");
+    }
+
+    function saveSaved(arr){
+      localStorage.setItem(KEY, JSON.stringify(arr));
+    }
+
+    function downloadDataUrl(dataUrl, filename){
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    }
+
+    function renderGallery(){
+      gallery.innerHTML = "";
+      const saved = loadSaved();
+
+      if (saved.length === 0){
+        const p = document.createElement("p");
+        p.textContent = "Aún no hay guardados.";
+        gallery.appendChild(p);
+        return;
+      }
+
+      saved.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = "thumb";
+
+        const img = document.createElement("img");
+        img.src = item.dataUrl;
+        img.alt = "Guardado " + (idx + 1);
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.innerHTML = `<span>#${idx+1}</span><span>${item.label}</span>`;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const btnDl = document.createElement("button");
+        btnDl.type = "button";
+        btnDl.textContent = "Descargar";
+        btnDl.addEventListener("click", () => {
+          downloadDataUrl(item.dataUrl, item.filename);
+        });
+
+        const btnDel = document.createElement("button");
+        btnDel.type = "button";
+        btnDel.textContent = "Eliminar";
+        btnDel.addEventListener("click", () => {
+          const arr = loadSaved();
+          arr.splice(idx, 1);
+          saveSaved(arr);
+          renderGallery();
+        });
+
+        actions.appendChild(btnDl);
+        actions.appendChild(btnDel);
+
+        card.appendChild(img);
+        card.appendChild(meta);
+        card.appendChild(actions);
+        gallery.appendChild(card);
+      });
+    }
+
+    // Cargar galería al abrir
+    renderGallery();
+
+    // ====== BOTÓN GUARDAR (descarga + galería) ======
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      const dataUrl = canvas.toDataURL("image/png");
+
+      const stamp = new Date();
+      const yyyy = stamp.getFullYear();
+      const mm = String(stamp.getMonth() + 1).padStart(2,"0");
+      const dd = String(stamp.getDate()).padStart(2,"0");
+      const hh = String(stamp.getHours()).padStart(2,"0");
+      const mi = String(stamp.getMinutes()).padStart(2,"0");
+
+      const filename = `Pizarra_${yyyy}_${mm}_${dd}_${hh}_${mi}.png`;
+
+      // 1) descarga
+      downloadDataUrl(dataUrl, filename);
+
+      // 2) guarda en galería local (máximo 12)
+      const saved = loadSaved();
+      saved.unshift({ dataUrl, filename, label: nowLabel() });
+      saved.splice(12);
+      saveSaved(saved);
+
+      renderGallery();
+    });
+
+    // ====== LIMPIAR GUARDADOS ======
+    document.getElementById("clearSavedBtn").addEventListener("click", () => {
+      localStorage.removeItem(KEY);
+      renderGallery();
+    });
+  </script>
 
 </main>
 
