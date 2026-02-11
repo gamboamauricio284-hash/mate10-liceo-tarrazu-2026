@@ -49,6 +49,64 @@
   </style>
 </head>
 
+  <h2>Pizarra</h2>
+<canvas id="board" width="900" height="450"></canvas>
+
+<div style="margin-top:10px;">
+  <button id="clearBtn" type="button">Borrar</button>
+</div>
+
+<style>
+  #board{
+    border: 2px solid #000;
+    border-radius: 10px;
+    touch-action: none;
+    background: white;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById("board");
+  const ctx = canvas.getContext("2d");
+
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  let drawing = false;
+
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  canvas.addEventListener("pointerdown", (e) => {
+    drawing = true;
+    canvas.setPointerCapture(e.pointerId);
+    const p = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  });
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (!drawing) return;
+    const p = getPos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  });
+
+  canvas.addEventListener("pointerup", () => drawing = false);
+  canvas.addEventListener("pointercancel", () => drawing = false);
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+</script>
+
+
 <body>
 
 <header>
