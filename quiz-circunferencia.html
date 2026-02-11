@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz: Centro y radio de una circunferencia</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$', '$']] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+  <style>
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:#f4f6f8;
+      color:#1a1a1a;
+    }
+    header{
+      background:#0b3c5d;
+      color:white;
+      padding:20px;
+      text-align:center;
+    }
+    main{
+      max-width:900px;
+      margin:20px auto;
+      background:white;
+      padding:20px;
+      border-radius:8px;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
+    }
+    .eq{
+      font-size:1.2em;
+      margin:15px 0;
+    }
+    .option{
+      margin:8px 0;
+    }
+    button{
+      margin-top:10px;
+      padding:8px 14px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    .ok{ color:green; }
+    .bad{ color:red; }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Centro y radio de una circunferencia</h1>
+  <p>Seleccioná la opción correcta</p>
+</header>
+
+<main>
+  <div id="equation" class="eq"></div>
+
+  <form id="options"></form>
+
+  <button onclick="check()">Verificar</button>
+  <button onclick="newExercise()">Nuevo ejercicio</button>
+
+  <p id="feedback"></p>
+</main>
+
+<script>
+  let correct = "";
+
+  function rand(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  function newExercise(){
+    const h = rand(-5,5);
+    const k = rand(-5,5);
+    const r = rand(1,6);
+
+    const hx = h>=0 ? `x-${h}` : `x+${-h}`;
+    const ky = k>=0 ? `y-${k}` : `y+${-k}`;
+
+    document.getElementById("equation").innerHTML =
+      `\\[(${hx})^2 + (${ky})^2 = ${r}^2\\]`;
+
+    correct = `${h},${k},${r}`;
+
+    const opts = [
+      {h:h,k:k,r:r},
+      {h:k,k:h,r:r},
+      {h:h,k:k,r:r+1}
+    ];
+
+    opts.sort(()=>Math.random()-0.5);
+
+    const form = document.getElementById("options");
+    form.innerHTML = "";
+    opts.forEach(o=>{
+      const key = `${o.h},${o.k},${o.r}`;
+      form.innerHTML +=
+        `<div class="option">
+          <label>
+            <input type="radio" name="ans" value="${key}">
+            Centro (${o.h},${o.k}), r=${o.r}
+          </label>
+        </div>`;
+    });
+
+    MathJax.typesetPromise();
+    document.getElementById("feedback").textContent = "";
+  }
+
+  function check(){
+    const sel = document.querySelector('input[name="ans"]:checked');
+    const fb = document.getElementById("feedback");
+    if(!sel){
+      fb.textContent = "Elegí una opción.";
+      fb.className = "bad";
+      return;
+    }
+    if(sel.value===correct){
+      fb.textContent = "Correcto ✔";
+      fb.className = "ok";
+    }else{
+      fb.textContent = "Incorrecto ✘";
+      fb.className = "bad";
+    }
+  }
+
+  newExercise();
+</script>
+</body>
+</html>
