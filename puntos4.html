@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Circunferencia: puntos interior/exterior/sobre (aleatorio)</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --ink:#111827; --muted:#6b7280;
+      --accent:#4f46e5; --ok:#16a34a; --bad:#dc2626; --line:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink);}
+    header{padding:18px 14px; background:linear-gradient(90deg, #e0f2fe, #fce7f3); border-bottom:1px solid var(--line);}
+    header .wrap{max-width:980px; margin:0 auto; display:flex; gap:12px; align-items:center; justify-content:space-between;}
+    h1{font-size:18px; margin:0; font-weight:800}
+    main{max-width:980px; margin:14px auto; padding:0 14px 22px;}
+    .grid{display:grid; grid-template-columns:1.1fr .9fr; gap:14px;}
+    @media (max-width: 880px){ .grid{grid-template-columns:1fr;} }
+    .card{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 24px rgba(17,24,39,.06); overflow:hidden;}
+    .card .hd{padding:12px 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:10px;}
+    .badge{font-size:12px; padding:5px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-weight:700;}
+    .card .bd{padding:14px;}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    label{font-size:12px; font-weight:700; color:var(--muted); display:block; margin-bottom:6px}
+    input[type="text"]{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:12px; outline:none;}
+    input[type="text"]:focus{border-color:rgba(79,70,229,.6); box-shadow:0 0 0 4px rgba(79,70,229,.12);}
+    .btns{display:flex; gap:10px; flex-wrap:wrap}
+    button{border:0; border-radius:12px; padding:10px 12px; font-weight:800; cursor:pointer;}
+    .primary{background:var(--accent); color:white;}
+    .ghost{background:#eef2ff; color:#3730a3;}
+    .danger{background:#fee2e2; color:#7f1d1d;}
+    .muted{background:#f3f4f6; color:#111827;}
+    button:disabled{opacity:.55; cursor:not-allowed;}
+    .qtitle{font-size:16px; font-weight:900; margin:0 0 8px;}
+    .small{font-size:12px; color:var(--muted); margin:0}
+    .choices{margin-top:10px; display:grid; gap:8px;}
+    .choice{border:1px solid var(--line); border-radius:14px; padding:10px 12px; display:flex; align-items:flex-start; gap:10px; cursor:pointer;}
+    .choice input{margin-top:3px}
+    .choice:hover{background:#fafafa}
+    .result{margin-top:10px; padding:10px 12px; border-radius:14px; border:1px solid var(--line); display:none;}
+    .result.ok{display:block; background:#ecfdf5; border-color:#bbf7d0;}
+    .result.bad{display:block; background:#fef2f2; border-color:#fecaca;}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .canvasWrap{display:grid; gap:10px;}
+    .svgBox{background:#fff; border:1px solid var(--line); border-radius:16px; padding:10px; overflow:hidden;}
+    .note{font-size:12px; color:var(--muted); line-height:1.35}
+    .kpi{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:#fff; font-size:12px; font-weight:800;}
+    .pill span{font-weight:900}
+    .footer{margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
+    a{color:#3730a3}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Circunferencia — Puntos interior, exterior y sobre (aleatorio)</h1>
+    <div class="badge" id="modeBadge">Modo: —</div>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card">
+      <div class="hd">
+        <div>
+          <div class="badge">Datos del estudiante</div>
+        </div>
+        <div class="btns">
+          <button class="ghost" id="btnNew">Nuevo ejercicio</button>
+          <button class="muted" id="btnReset">Reiniciar todo</button>
+        </div>
+      </div>
+      <div class="bd">
+<div style="height:10px"></div>
+
+        <div class="card" style="border-radius:14px;">
+          <div class="hd">
+            <div>
+              <p class="qtitle" style="margin:0;">Ejercicio</p>
+              <p class="small" id="qSub">—</p>
+            </div>
+            <div class="badge" id="qId">#—</div>
+          </div>
+          <div class="bd">
+            <div id="promptArea"></div>
+
+            <div class="choices" id="choices"></div>
+
+            <div class="btns" style="margin-top:10px;">
+              <button class="primary" id="btnCheck">Verificar</button>
+              <button class="ghost" id="btnShow">Ver solución</button>
+              <button class="muted" id="btnDownload">Descargar respuestas (.json)</button>
+            </div>
+
+            <div class="result" id="resultBox"></div>
+
+            <div class="kpi">
+              <div class="pill">Correctas: <span id="kpiOk">0</span></div>
+              <div class="pill">Respondidas: <span id="kpiDone">0</span></div>
+            </div>
+
+            <p class="note" style="margin-top:10px;">
+              <b>Idea del ejercicio:</b> comparar la distancia del punto al centro con el radio.
+              Si \(d&lt;r\) está <b>dentro</b>, si \(d=r\) está <b>sobre</b>, si \(d&gt;r\) está <b>fuera</b>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <div class="hd">
+        <div class="badge">Vista y detalles</div>
+        <div class="badge" id="circleBadge">Circunferencia</div>
+      </div>
+      <div class="bd">
+        <div class="canvasWrap" id="vizArea"></div>
+        <div class="note" id="detailText" style="margin-top:10px;"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="footer">
+    <div class="note">
+      Genera ejercicios aleatorios de dos tipos: <b>con dibujo</b> y <b>con ecuación</b>.
+    </div>
+    <div class="note">
+      Si quieres guardar evidencia: descarga el <b>.json</b> y pídeles que lo suban en Teams.
+    </div>
+  </div>
+</main>
+
+<script>
+/* ---------------------- Utilidades matemáticas ---------------------- */
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a; }
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function choice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function sq(n){ return n*n; }
+
+function classifyPoint(cx,cy,r,px,py){
+  const d2 = sq(px-cx)+sq(py-cy);
+  const r2 = sq(r);
+  if(d2 < r2) return "interior";
+  if(d2 === r2) return "sobre";
+  return "exterior";
+}
+
+/* Genera un círculo “limpio” con radio entero y centro entero */
+function genCircle(){
+  // centro cerca del origen para que se vea bonito en el dibujo
+  const cx = randInt(-4,4);
+  const cy = randInt(-4,4);
+  const r  = randInt(2,6);
+  return {cx,cy,r};
+}
+
+/* Genera un punto garantizando una clase específica respecto al círculo */
+function genPointOfType(circle, type){
+  const {cx,cy,r} = circle;
+  if(type==="sobre"){
+    // tomar un punto en los ejes para asegurar distancia r
+    const variants = [
+      {x:cx+r, y:cy},
+      {x:cx-r, y:cy},
+      {x:cx, y:cy+r},
+      {x:cx, y:cy-r},
+    ];
+    return choice(variants);
+  }
+  if(type==="interior"){
+    // punto dentro: elegir dx,dy con dx^2+dy^2 < r<sup>2</sup>
+    while(true){
+      const dx = randInt(-(r-1),(r-1));
+      const dy = randInt(-(r-1),(r-1));
+      if(dx===0 && dy===0) continue;
+      if(dx*dx+dy*dy < r*r){
+        return {x:cx+dx, y:cy+dy};
+      }
+    }
+  }
+  // exterior
+  while(true){
+    const dx = randInt(-(r+4),(r+4));
+    const dy = randInt(-(r+4),(r+4));
+    if(dx===0 && dy===0) continue;
+    if(dx*dx+dy*dy > r*r){
+      return {x:cx+dx, y:cy+dy};
+    }
+  }
+}
+
+/* ---------------------- Generación de ejercicios ---------------------- */
+/*
+  Dos formatos:
+  A) Con dibujo: se muestra círculo y se dan 2 proposiciones tipo:
+     I. P(a,b) está en el interior/sobre/exterior.
+     II. Q(c,d) está en el interior/sobre/exterior.
+     Pregunta: ¿cuáles son verdaderas? (A ambas, B ninguna, C solo I, D solo II)
+
+  B) Con ecuación: c: (x-h)^2 + (y-k)^2 = r<sup>2</sup>, y opciones de puntos.
+     Pregunta: ¿Cuál punto está interior/sobre/exterior? (selección única)
+*/
+
+let state = {
+  exerciseIndex: 0,
+  current: null,
+  answersLog: [],
+  okCount: 0,
+  doneCount: 0,
+};
+
+function makeExercise(){
+  // Tipo de ejercicio: alterna entre "dibujo" y "formula" para que aparezcan ambos modelos.
+  // Si prefieres aleatorio puro, cambia la variable FORCE_ALTERNATE a false.
+  const FORCE_ALTERNATE = true;
+  let type;
+  if(FORCE_ALTERNATE){
+    const last = window._lastType || null;
+    type = (last === "dibujo") ? "formula" : "dibujo";
+  } else {
+    type = choice(["dibujo","formula"]);
+  }
+  window._lastType = type;
+
+  const circle = genCircle();
+
+  if(type==="dibujo"){
+    // Elegimos 2 puntos con tipos aleatorios (pueden repetirse)
+    const pType = choice(["interior","exterior","sobre"]);
+    const qType = choice(["interior","exterior","sobre"]);
+    const P = genPointOfType(circle, pType);
+    const Q = genPointOfType(circle, qType);
+
+    // Preguntas: afirmamos clases (a veces correctas, a veces incorrectas)
+    // Para que haya variedad, en cada proposición decidimos si decimos la verdad o mentimos
+    function maybeWrong(trueType){
+      const tellTruth = Math.random() < 0.6;
+      if(tellTruth) return {claimed:trueType, isTrue:true};
+      // mentira: escoger otro tipo
+      const other = choice(["interior","exterior","sobre"].filter(t=>t!==trueType));
+      return {claimed:other, isTrue:false};
+    }
+    const Ptrue = classifyPoint(circle.cx, circle.cy, circle.r, P.x, P.y);
+    const Qtrue = classifyPoint(circle.cx, circle.cy, circle.r, Q.x, Q.y);
+    const I = maybeWrong(Ptrue);
+    const II = maybeWrong(Qtrue);
+
+    // Solución A/B/C/D
+    const Itrue = I.isTrue;
+    const IItrue = II.isTrue;
+    let correctKey = "B";
+    if(Itrue && IItrue) correctKey="A";
+    else if(Itrue && !IItrue) correctKey="C";
+    else if(!Itrue && IItrue) correctKey="D";
+    else correctKey="B";
+
+    return {
+      id: `D-${Date.now()}`,
+      type,
+      circle,
+      payload: {P,Q,I,II, Ptrue, Qtrue},
+      correctKey,
+      explanation: buildExplainDibujo(circle, P, Q, I, II)
+    };
+  }
+
+  // formula
+  // Pedimos un punto de una clase objetivo
+  const target = choice(["interior","sobre","exterior"]);
+  const correctPoint = genPointOfType(circle, target);
+
+  // Generar 2 distractores distintos y de clases distintas si es posible
+  const otherTypes = ["interior","sobre","exterior"].filter(t=>t!==target);
+  const p2 = genPointOfType(circle, choice(otherTypes));
+  let p3 = genPointOfType(circle, choice(otherTypes));
+  // asegurar que no repita coordenadas
+  let guard=0;
+  while((p3.x===p2.x && p3.y===p2.y) || (p3.x===correctPoint.x && p3.y===correctPoint.y)){
+    p3 = genPointOfType(circle, choice(otherTypes));
+    guard++; if(guard>20) break;
+  }
+
+  const options = shuffle([
+    {key:"A", pt: correctPoint, isCorrect:true},
+    {key:"B", pt: p2, isCorrect:false},
+    {key:"C", pt: p3, isCorrect:false},
+  ]);
+
+  // re-etiquetar a A/B/C según orden
+  const letters = ["A","B","C"];
+  options.forEach((o,i)=>o.key=letters[i]);
+  const correctKey = options.find(o=>o.isCorrect).key;
+
+  return {
+    id: `F-${Date.now()}`,
+    type,
+    circle,
+    payload: {target, options},
+    correctKey,
+    explanation: buildExplainFormula(circle, target, options)
+  };
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+/* ---------------------- Explicaciones ---------------------- */
+function typeWord(t){
+  if(t==="interior") return "interior";
+  if(t==="exterior") return "exterior";
+  return "sobre";
+}
+
+function dist2Text(circle, pt){
+  const cx = circle.cx, cy = circle.cy;
+  const px = pt.x, py = pt.y;
+  const dx = px - cx, dy = py - cy;
+  const d2 = dx*dx + dy*dy;
+  // Texto con notación matemática más clara (potencias con superíndices)
+  return `d<sup>2</sup> = (${px} - ${cx})<sup>2</sup> + (${py} - ${cy})<sup>2</sup> = ${dx}<sup>2</sup> + ${dy}<sup>2</sup> = ${d2}`;
+}
+
+
+function buildExplainDibujo(circle, P, Q, I, II){
+  const r2 = circle.r*circle.r;
+  const Ptrue = classifyPoint(circle.cx, circle.cy, circle.r, P.x, P.y);
+  const Qtrue = classifyPoint(circle.cx, circle.cy, circle.r, Q.x, Q.y);
+
+  const pText = `${dist2Text(circle,P)} y r<sup>2</sup> = ${r2}. Entonces P está ${Ptrue}.`;
+  const qText = `${dist2Text(circle,Q)} y r<sup>2</sup> = ${r2}. Entonces Q está ${Qtrue}.`;
+
+  const Itext = `I. Se afirma que P(${P.x},${P.y}) está en el ${I.claimed} → ${I.isTrue ? "Verdadera" : "Falsa"}.`;
+  const IItext = `II. Se afirma que Q(${Q.x},${Q.y}) está en el ${II.claimed} → ${II.isTrue ? "Verdadera" : "Falsa"}.`;
+
+  return `<div class="mono" style="font-size:12px; line-height:1.35;">
+    <b>Centro</b> O(${circle.cx},${circle.cy}), <b>radio</b> r=${circle.r}.<br><br>
+    <b>Para P:</b> ${pText}<br>
+    <b>Para Q:</b> ${qText}<br><br>
+    ${Itext}<br>
+    ${IItext}<br>
+  </div>`;
+}
+
+
+    function formatTerm(varName, value){
+      if(value < 0){
+        return `(${varName} + ${Math.abs(value)})`;
+      } else {
+        return `(${varName} - ${value})`;
+      }
+    }
+
+function buildExplainFormula(circle, target, options){
+  const r2 = circle.r*circle.r;
+  const eq = `${formatTerm('x', circle.cx)}² + ${formatTerm('y', circle.cy)}² = ${r2}`;
+  let lines = options.map(o=>{
+    const cls = classifyPoint(circle.cx, circle.cy, circle.r, o.pt.x, o.pt.y);
+    const mark = (cls===target) ? "✅" : "—";
+    return `${o.key}) (${o.pt.x}, ${o.pt.y}) → ${dist2Text(circle, o.pt)}. Comparo con r²=${r2} ⇒ ${cls}. ${mark}`;
+  }).join("<br>");
+  return `<div class="mono" style="font-size:12px; line-height:1.35;">
+    Circunferencia: <b>${eq}</b><br><br>
+    Busco un punto <b>${target}</b>.<br><br>
+    ${lines}
+  </div>`;
+}
+
+/* ---------------------- Renderizado ---------------------- */
+const el = (id)=>document.getElementById(id);
+
+function renderExercise(ex){
+  state.current = ex;
+  state.exerciseIndex += 1;
+
+  el("qId").textContent = `#${state.exerciseIndex}`;
+  el("modeBadge").textContent = `Modo: ${ex.type === "dibujo" ? "con dibujo" : "con ecuación"}`;
+  el("circleBadge").textContent = ex.type === "dibujo" ? "Plano cartesiano" : "Ecuación";
+
+  el("resultBox").className = "result";
+  el("resultBox").style.display = "none";
+  el("resultBox").innerHTML = "";
+
+  // prompt + choices
+  el("promptArea").innerHTML = "";
+  el("choices").innerHTML = "";
+  el("vizArea").innerHTML = "";
+  el("detailText").innerHTML = "";
+
+  if(ex.type==="dibujo"){
+    const {P,Q,I,II} = ex.payload;
+    el("qSub").textContent = "Determina cuáles proposiciones son verdaderas (A/B/C/D).";
+
+    el("promptArea").innerHTML = `
+      <p class="small" style="margin:0 0 10px;">
+        Se muestra una circunferencia de centro <b>O</b>. Considera:
+      </p>
+      <div class="mono" style="font-size:13px; line-height:1.35;">
+        I. P(${P.x}, ${P.y}) es un punto ubicado en el <b>${I.claimed}</b> de la circunferencia.<br>
+        II. Q(${Q.x}, ${Q.y}) es un punto ubicado en el <b>${II.claimed}</b> de la circunferencia.
+      </div>
+      <p class="small" style="margin:10px 0 0;">
+        ¿Cuál opción es correcta?
+      </p>
+    `;
+
+    const opts = [
+      {k:"A", t:"Ambas (I y II)"},
+      {k:"B", t:"Ninguna"},
+      {k:"C", t:"Solo la I"},
+      {k:"D", t:"Solo la II"},
+    ];
+    el("choices").innerHTML = opts.map(o=>`
+      <label class="choice">
+        <input type="radio" name="ans" value="${o.k}">
+        <div><b>${o.k})</b> ${o.t}</div>
+      </label>
+    `).join("");
+
+    // Vista: dibujo SVG + puntos
+    el("vizArea").appendChild(makeCircleSVG(ex.circle, [])); // No mostrar puntos P y Q en el dibujo
+    el("detailText").innerHTML = `
+      <b>Datos ocultos para el estudiante (para el docente):</b><br>
+      Centro O(${ex.circle.cx}, ${ex.circle.cy}), radio r=${ex.circle.r}.<br>
+      (Puedes usarlo como retroalimentación si alguien pide explicación.)
+    `;
+  } else {
+    const {target, options} = ex.payload;
+    el("qSub").textContent = "Selecciona el punto que cumple la condición pedida.";
+    const r2 = ex.circle.r*ex.circle.r;
+    const eq = `${formatTerm('x', ex.circle.cx)}² + ${formatTerm('y', ex.circle.cy)}² = ${r2}`;
+
+    el("promptArea").innerHTML = `
+      <p class="small" style="margin:0 0 10px;">
+        La circunferencia <b>c</b> tiene ecuación:
+      </p>
+      <div class="mono" style="font-size:14px; padding:10px 12px; border:1px solid var(--line); border-radius:14px; background:#fff;">
+        ${eq}
+      </div>
+      <p class="small" style="margin:10px 0 0;">
+        Un punto <b>${target}</b> a <b>c</b> corresponde a:
+      </p>
+    `;
+
+    el("choices").innerHTML = options.map(o=>`
+      <label class="choice">
+        <input type="radio" name="ans" value="${o.key}">
+        <div><b>${o.key})</b> (${o.pt.x}, ${o.pt.y})</div>
+      </label>
+    `).join("");
+
+    // Vista: mini-dibujo opcional para apoyo (no revela respuesta)
+    // En modo fórmula NO se muestra dibujo según indicación del docente.
+
+    el("detailText").innerHTML = `
+      <b>Recordatorio:</b> calcula <span class="mono">d²=(x-h)²+(y-k)²</span> y compara con <span class="mono">r²</span>.
+      <ul style="margin:8px 0 0 18px; padding:0;">
+        <li>Si d² &lt; r² → interior</li>
+        <li>Si d² = r² → sobre</li>
+        <li>Si d² &gt; r² → exterior</li>
+      </ul>
+    `;
+  }
+}
+
+function makeCircleSVG(circle, points){
+  // Mapeo a SVG
+  const size = 360;
+  const pad = 18;
+  // escalado automático: cubrir centro ± (r+5)
+  const span = (circle.r + 6);
+  const xmin = circle.cx - span, xmax = circle.cx + span;
+  const ymin = circle.cy - span, ymax = circle.cy + span;
+  const sx = (x)=> pad + (x - xmin) * ( (size-2*pad)/(xmax-xmin) );
+  const sy = (y)=> pad + (ymax - y) * ( (size-2*pad)/(ymax-ymin) );
+
+  const svg = document.createElement("div");
+  svg.className = "svgBox";
+  svg.innerHTML = `
+    <svg width="100%" viewBox="0 0 ${size} ${size}" aria-label="Plano cartesiano con circunferencia">
+      <!-- grid -->
+      ${gridLines(xmin,xmax,ymin,ymax,sx,sy)}
+      <!-- axes -->
+      <line x1="${sx(0)}" y1="${sy(ymin)}" x2="${sx(0)}" y2="${sy(ymax)}" stroke="#111827" stroke-width="1.2" opacity=".8"/>
+      <line x1="${sx(xmin)}" y1="${sy(0)}" x2="${sx(xmax)}" y2="${sy(0)}" stroke="#111827" stroke-width="1.2" opacity=".8"/>
+      <!-- circle -->
+      <circle cx="${sx(circle.cx)}" cy="${sy(circle.cy)}" r="${Math.abs(sx(circle.cx+circle.r)-sx(circle.cx))}" fill="none" stroke="#4f46e5" stroke-width="2"/>
+      <!-- center -->
+      <circle cx="${sx(circle.cx)}" cy="${sy(circle.cy)}" r="3.2" fill="#111827"/>
+      <text x="${sx(circle.cx)+6}" y="${sy(circle.cy)-6}" font-size="12" fill="#111827" font-weight="700">O</text>
+      <!-- points -->
+      ${points.map(p=>{
+        const x = sx(p.pt.x), y = sy(p.pt.y);
+        return `
+          <circle cx="${x}" cy="${y}" r="4" fill="#16a34a" opacity=".95"/>
+          <text x="${x+6}" y="${y-6}" font-size="12" fill="#065f46" font-weight="900">${p.label}</text>
+        `;
+      }).join("")}
+    </svg>
+    <div class="note" style="margin-top:6px;">
+      Plano a escala (aprox.). Usa el cálculo con distancia para decidir interior/sobre/exterior.
+    </div>
+  `;
+  return svg;
+}
+
+function gridLines(xmin,xmax,ymin,ymax,sx,sy){
+  // líneas cada 1 unidad (máx 21)
+  const maxLines = 21;
+  const xs = [];
+  for(let x=Math.ceil(xmin); x<=Math.floor(xmax); x++){
+    xs.push(x);
+  }
+  const ys = [];
+  for(let y=Math.ceil(ymin); y<=Math.floor(ymax); y++){
+    ys.push(y);
+  }
+  // si hay demasiadas, espaciamos
+  let xStep = 1, yStep = 1;
+  if(xs.length>maxLines) xStep = Math.ceil(xs.length/maxLines);
+  if(ys.length>maxLines) yStep = Math.ceil(ys.length/maxLines);
+
+  const v = xs.filter((_,i)=>i % xStep === 0).map(x=>{
+    const X = sx(x);
+    return `<line x1="${X}" y1="${sy(ymin)}" x2="${X}" y2="${sy(ymax)}" stroke="#e5e7eb" stroke-width="1"/>`;
+  }).join("");
+  const h = ys.filter((_,i)=>i % yStep === 0).map(y=>{
+    const Y = sy(y);
+    return `<line x1="${sx(xmin)}" y1="${Y}" x2="${sx(xmax)}" y2="${Y}" stroke="#e5e7eb" stroke-width="1"/>`;
+  }).join("");
+
+  return v + h;
+}
+
+/* ---------------------- Validación / Corrección ---------------------- */
+function getSelected(){
+  const r = document.querySelector('input[name="ans"]:checked');
+  return r ? r.value : null;
+}
+function ensureStudentData(){
+  // Este modelo no requiere nombre ni sección
+  return {};
+}
+
+
+function showResult(ok, html){
+  const box = el("resultBox");
+  box.className = "result " + (ok ? "ok" : "bad");
+  box.style.display = "block";
+  box.innerHTML = html;
+}
+
+function updateKPI(){
+  el("kpiOk").textContent = state.okCount;
+  el("kpiDone").textContent = state.doneCount;
+}
+
+function checkAnswer(){
+  const student = ensureStudentData();
+  if(!student) return;
+
+  const sel = getSelected();
+  if(!sel){
+    alert("Selecciona una opción.");
+    return;
+  }
+
+  const ex = state.current;
+  const ok = (sel === ex.correctKey);
+  state.doneCount += 1;
+  if(ok) state.okCount += 1;
+
+  const record = {
+    timestamp: new Date().toISOString(),
+    exerciseNumber: state.exerciseIndex,
+    exerciseId: ex.id,
+    mode: ex.type,
+    circle: ex.circle,
+    selected: sel,
+    correct: ex.correctKey,
+    isCorrect: ok,
+  };
+  state.answersLog.push(record);
+
+  showResult(ok, `
+    <b>${ok ? "✅ Correcto" : "❌ Incorrecto"}</b><br>
+    Tu respuesta: <b>${sel}</b> — Respuesta correcta: <b>${ex.correctKey}</b>
+  `);
+  updateKPI();
+}
+
+function showSolution(){
+  const student = ensureStudentData();
+  if(!student) return;
+  const ex = state.current;
+  showResult(true, `<b>Solución / Explicación</b><br>${ex.explanation}`);
+}
+
+function downloadJSON(){
+  const student = ensureStudentData();
+  if(!student) return;
+
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    summary: {correctas: state.okCount, respondidas: state.doneCount},
+    answers: state.answersLog
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  const safeName = student.name.replace(/[^\w\s-]/g,"").trim().replace(/\s+/g,"_");
+  const safeSec = student.sec.replace(/[^\w-]/g,"").trim();
+  a.href = URL.createObjectURL(blob);
+  a.download = `Resultados_Circunferencia_${safeSec}_${safeName || "estudiante"}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function newExercise(){
+  const ex = makeExercise();
+  renderExercise(ex);
+}
+
+function resetAll(){
+  if(!confirm("¿Reiniciar todo? Se borrarán los resultados acumulados.")) return;
+  state.exerciseIndex = 0;
+  state.answersLog = [];
+  state.okCount = 0;
+  state.doneCount = 0;
+  updateKPI();
+  newExercise();
+}
+
+/* ---------------------- Eventos ---------------------- */
+el("btnCheck").addEventListener("click", checkAnswer);
+el("btnShow").addEventListener("click", showSolution);
+el("btnDownload").addEventListener("click", downloadJSON);
+el("btnNew").addEventListener("click", newExercise);
+el("btnReset").addEventListener("click", resetAll);
+
+// inicio
+updateKPI();
+newExercise();
+</script>
+</body>
+</html>
