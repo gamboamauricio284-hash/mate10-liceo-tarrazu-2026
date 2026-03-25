@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Traslación de circunferencias</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root{
+    --bg:#f7f9fc; --card:#fff; --ink:#1f2a37; --muted:#5b6572; --line:#d9e2ec;
+    --accent:#2563eb; --good:#15803d; --bad:#b91c1c; --soft:#eef4ff; --soft2:#f8fafc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+  .wrap{max-width:1250px;margin:0 auto;padding:20px}
+  h1,h2,h3{margin:0 0 12px}
+  .subtitle{color:var(--muted);margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.05);margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:1.2fr .95fr;gap:16px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  button{border:none;background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;font-weight:bold;cursor:pointer}
+  button.secondary{background:#475569}
+  button.light{background:#e8f0ff;color:#123b95;border:1px solid #cfe0ff}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .dirs{display:grid;grid-template-columns:repeat(3,78px);gap:8px;justify-content:start;align-items:center;margin-top:10px}
+  .dirs button{padding:12px}
+  .spacer{visibility:hidden}
+  .status{padding:10px 12px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);color:var(--muted);margin-top:10px}
+  .good{color:var(--good)} .bad{color:var(--bad)}
+  .canvasWrap{width:100%;overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;padding:8px}
+  canvas{width:100%;max-width:700px;display:block;margin:auto;background:#fff}
+  .formula{font-size:1.05rem;padding:10px 12px;background:var(--soft);border:1px solid #d8e6ff;border-radius:10px;margin-bottom:10px}
+  .mini{color:var(--muted);font-size:.95rem}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .pill{background:#f1f5f9;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.95rem}
+  .practice-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:#fff}
+  .mathInput,.smallInput{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font-size:1rem;font-family:Arial,Helvetica,sans-serif}
+  .mathInput{min-height:58px}
+  .smallInput{min-height:42px}
+  .preview{margin-top:8px;padding:10px;border-radius:10px;background:#f8fafc;border:1px dashed #cbd5e1}
+  .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.9rem;font-weight:bold}
+  .badge.good{background:#dcfce7}.badge.bad{background:#fee2e2}
+  .hr{height:1px;background:var(--line);margin:16px 0}
+  .twoCols{display:grid;grid-template-columns:1.4fr .9fr;gap:14px}
+  @media (max-width:900px){.twoCols{grid-template-columns:1fr}}
+  .infoPanel{background:var(--soft2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .keypad{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .keypad button{padding:8px 10px;border-radius:8px;background:#f1f5f9;color:#0f172a;border:1px solid #cbd5e1}
+  .fieldGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media (max-width:700px){.fieldGrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Traslación de circunferencias</h1>
+    <div class="subtitle">
+      Primero tendrás <strong>5 ejemplos guiados</strong> con ayuda visual.
+      Después aparecerán <strong>5 ejercicios</strong> para resolver sin la guía visual.
+    </div>
+    <div class="row">
+      <span class="pill">Forma trabajada: \((x-h)^2+(y-k)^2=r^2\)</span>
+      <span class="pill">En una traslación cambia el centro, pero el radio permanece igual</span>
+    </div>
+  </div>
+
+  <div id="guidedSection" class="card">
+    <h2>Fase guiada</h2>
+    <div class="mini">Mueve la circunferencia usando los botones hasta cumplir la instrucción. Aquí se muestra la fórmula, el centro y el radio.</div>
+    <div class="hr"></div>
+    <div class="grid">
+      <div>
+        <div class="canvasWrap">
+          <canvas id="plane" width="700" height="520"></canvas>
+        </div>
+      </div>
+      <div>
+        <div class="formula" id="instructionBox"></div>
+        <div class="formula" id="originalFormulaBox"></div>
+        <div class="formula" id="liveFormulaBox"></div>
+        <div class="infoPanel" id="guidedDataBox"></div>
+        <div class="toolbar">
+          <button class="secondary" onclick="resetCurrent()">Reiniciar ejemplo</button>
+          <button class="light" onclick="showHint()">Mostrar pista</button>
+          <button onclick="checkGoal()">Verificar</button>
+          <button id="nextBtn" onclick="nextExample()" disabled>Siguiente ejemplo</button>
+        </div>
+        <div class="dirs">
+          <div class="spacer"></div>
+          <button class="light" onclick="moveBy(0,1)">↑ Arriba</button>
+          <div class="spacer"></div>
+          <button class="light" onclick="moveBy(-1,0)">← Izquierda</button>
+          <button class="light" onclick="moveBy(0,0)">⦿ Nulo</button>
+          <button class="light" onclick="moveBy(1,0)">→ Derecha</button>
+          <div class="spacer"></div>
+          <button class="light" onclick="moveBy(0,-1)">↓ Abajo</button>
+          <div class="spacer"></div>
+        </div>
+        <div class="status" id="guidedStatus">Usa las flechas para trasladar la circunferencia.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="practiceSection" class="card" style="display:none;">
+    <h2>Fase de práctica</h2>
+    <div class="subtitle">
+      Escribe la ecuación final de cada circunferencia y completa también el centro y el radio.
+    </div>
+    <div id="practiceList"></div>
+    <div class="toolbar">
+      <button onclick="gradePractice()">Revisar respuestas</button>
+      <button class="secondary" onclick="newPractice()">Generar otros 5 ejercicios</button>
+    </div>
+    <div id="practiceResults" class="status">Escribe tus respuestas y luego presiona <strong>Revisar respuestas</strong>.</div>
+  </div>
+</div>
+
+<script>
+const guidedExamples = [
+  {h:-1,k:2,r:3,dx:2,dy:-3},
+  {h:3,k:-1,r:4,dx:-2,dy:1},
+  {h:0,k:0,r:2,dx:4,dy:2},
+  {h:-4,k:-2,r:5,dx:3,dy:-1},
+  {h:2,k:4,r:3,dx:-3,dy:-2}
+];
+let currentIndex = 0;
+let current = null;
+let practiceItems = [];
+let activeInputId = null;
+
+const canvas = document.getElementById("plane");
+const ctx = canvas.getContext("2d");
+
+function termX(h){ return h >= 0 ? `(x-${h})^2` : `(x+${Math.abs(h)})^2`; }
+function termY(k){ return k >= 0 ? `(y-${k})^2` : `(y+${Math.abs(k)})^2`; }
+function equation(h,k,r){ return `${termX(h)}+${termY(k)}=${r*r}`; }
+function texEquation(h,k,r){ return `\\(${termX(h)}+${termY(k)}=${r*r}\\)`; }
+
+function instructionText(ex){
+  const parts = [];
+  if(ex.dx > 0) parts.push(`${ex.dx} unidades a la derecha`);
+  if(ex.dx < 0) parts.push(`${Math.abs(ex.dx)} unidades a la izquierda`);
+  if(ex.dy > 0) parts.push(`${Math.abs(ex.dy)} unidades arriba`);
+  if(ex.dy < 0) parts.push(`${Math.abs(ex.dy)} unidades abajo`);
+  return parts.join(" y ");
+}
+
+function drawPlane(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const w = canvas.width, h = canvas.height, ox = w/2, oy = h/2, s = 28;
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#e5e7eb";
+  for(let x = ox % s; x < w; x += s){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for(let y = oy % s; y < h; y += s){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+
+  ctx.strokeStyle = "#64748b";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,0); ctx.lineTo(ox,h); ctx.stroke();
+
+  ctx.fillStyle = "#334155";
+  ctx.font = "14px Arial";
+  ctx.fillText("x", w-18, oy-8);
+  ctx.fillText("y", ox+8, 16);
+
+  ctx.font = "12px Arial";
+  for(let n=-11; n<=11; n++){
+    if(n !== 0){
+      let px = ox + n*s, py = oy - n*s;
+      if(px > 0 && px < w-12) ctx.fillText(String(n), px-5, oy+16);
+      if(py > 14 && py < h-6) ctx.fillText(String(n), ox+8, py+4);
+    }
+  }
+
+  drawCircle(current.h, current.k, current.r, "#94a3b8", 2, true, "Original");
+  drawCircle(current.currentH, current.currentK, current.r, "#2563eb", 3, false, "Trasladada");
+}
+
+function drawCircle(cx0,cy0,r,color,lineWidth,dashed,label){
+  const w = canvas.width, h = canvas.height, ox = w/2, oy = h/2, s = 28;
+  const cx = ox + cx0*s, cy = oy - cy0*s, rr = r*s;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  if(dashed) ctx.setLineDash([7,6]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, rr, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4.5, 0, Math.PI*2);
+  ctx.fill();
+  ctx.font = "14px Arial";
+  ctx.fillText(`${label}: (${cx0}, ${cy0})`, cx + 8, cy - 8);
+  ctx.restore();
+}
+
+function updateGuidedDataBox(){
+  document.getElementById("guidedDataBox").innerHTML = `
+    <strong>Datos visibles del ejemplo</strong><br>
+    <div class="mini">Circunferencia original: centro \((${current.h}, ${current.k})\), radio \(${current.r}\)</div>
+    <div class="mini">Circunferencia trasladada actual: centro \((${current.currentH}, ${current.currentK})\), radio \(${current.r}\)</div>
+    <div class="mini">Centro esperado al final: \((${current.goalH}, ${current.goalK})\)</div>
+  `;
+  typeset();
+}
+
+function loadExample(i){
+  const ex = guidedExamples[i];
+  current = {...ex, currentH:ex.h, currentK:ex.k, goalH:ex.h+ex.dx, goalK:ex.k+ex.dy};
+  document.getElementById("instructionBox").innerHTML = `<strong>Ejemplo ${i+1} de ${guidedExamples.length}.</strong> Traslada la circunferencia <strong>${instructionText(ex)}</strong>.`;
+  document.getElementById("originalFormulaBox").innerHTML =
+    `<strong>Fórmula original:</strong> ${texEquation(ex.h, ex.k, ex.r)}
+     <div class="mini">Centro original: (${ex.h}, ${ex.k}) | Radio: ${ex.r}</div>`;
+  updateLiveFormula();
+  updateGuidedDataBox();
+  document.getElementById("guidedStatus").innerHTML = "Usa las flechas para trasladar la circunferencia.";
+  document.getElementById("nextBtn").disabled = true;
+  drawPlane();
+  typeset();
+}
+
+function updateLiveFormula(){
+  document.getElementById("liveFormulaBox").innerHTML =
+    `<strong>Fórmula actual:</strong> ${texEquation(current.currentH, current.currentK, current.r)}
+    <div class="mini">Centro actual: (${current.currentH}, ${current.currentK}) | Radio: ${current.r}</div>`;
+  updateGuidedDataBox();
+  typeset();
+}
+
+function moveBy(dx,dy){
+  current.currentH += dx;
+  current.currentK += dy;
+  updateLiveFormula();
+  drawPlane();
+  document.getElementById("guidedStatus").innerHTML = `Movimiento aplicado: Δx=${dx}, Δy=${dy}.`;
+}
+
+function resetCurrent(){
+  current.currentH = current.h;
+  current.currentK = current.k;
+  updateLiveFormula();
+  drawPlane();
+  document.getElementById("guidedStatus").innerHTML = "Se reinició el ejemplo.";
+  document.getElementById("nextBtn").disabled = true;
+}
+
+function showHint(){
+  document.getElementById("guidedStatus").innerHTML =
+    `Pista: el centro pasa de (${current.h}, ${current.k}) a (${current.goalH}, ${current.goalK}). El radio sigue siendo ${current.r}.`;
+}
+
+function checkGoal(){
+  if(current.currentH === current.goalH && current.currentK === current.goalK){
+    document.getElementById("guidedStatus").innerHTML = `<span class="good"><strong>Correcto.</strong></span> Llegaste a la traslación pedida.`;
+    document.getElementById("nextBtn").disabled = false;
+  }else{
+    document.getElementById("guidedStatus").innerHTML =
+      `<span class="bad"><strong>Aún no.</strong></span> El centro correcto debe ser (${current.goalH}, ${current.goalK}).`;
+  }
+}
+
+function nextExample(){
+  currentIndex++;
+  if(currentIndex < guidedExamples.length){
+    loadExample(currentIndex);
+  }else{
+    document.getElementById("guidedSection").style.display = "none";
+    document.getElementById("practiceSection").style.display = "block";
+    newPractice();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+}
+
+function randint(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function randomNonZero(a,b){ let n=0; while(n===0) n=randint(a,b); return n; }
+
+function buildPracticeItem(i){
+  const h = randint(-5,5), k = randint(-5,5), r = randint(2,6);
+  const dx = randomNonZero(-4,4), dy = randomNonZero(-4,4);
+  return {id:i+1,h,k,r,dx,dy,goalH:h+dx,goalK:k+dy};
+}
+
+function keypadHtml(idx){
+  const keys = [
+    "(x-","(x+","(y-","(y+",
+    ")^2","+","=","-",
+    "0","1","2","3","4","5","6","7","8","9"
+  ];
+  return `<div class="keypad">` + keys.map(k=>`<button type="button" onclick="insertAtCursor('ans${idx}','${k.replace(/'/g,"\'")}')">${k}</button>`).join("") + `</div>`;
+}
+
+function newPractice(){
+  practiceItems = Array.from({length:5}, (_,i)=>buildPracticeItem(i));
+  const box = document.getElementById("practiceList");
+  box.innerHTML = practiceItems.map((it, idx)=>`
+    <div class="practice-item">
+      <h3>Ejercicio ${idx+1}</h3>
+      <div class="twoCols">
+        <div>
+          <div class="formula">
+            Fórmula original: \\(${equation(it.h,it.k,it.r)}\\)<br>
+            Traslada la circunferencia
+            <strong>
+              ${it.dx>0 ? `${it.dx} unidades a la derecha` : `${Math.abs(it.dx)} unidades a la izquierda`}
+              y
+              ${it.dy>0 ? `${it.dy} unidades arriba` : `${Math.abs(it.dy)} unidades abajo`}
+            </strong>.
+          </div>
+          <label for="ans${idx}"><strong>Ecuación final:</strong></label>
+          <textarea id="ans${idx}" class="mathInput" placeholder="Ejemplo: (x-3)^2+(y+1)^2=25" onfocus="activeInputId='ans${idx}'" oninput="previewInput(${idx})"></textarea>
+          ${keypadHtml(idx)}
+          <div class="preview" id="preview${idx}">Vista previa: <span class="mini">escribe tu respuesta</span></div>
+        </div>
+        <div class="infoPanel">
+          <div class="mini"><strong>Completa también:</strong></div>
+          <div class="fieldGrid" style="margin-top:8px">
+            <div>
+              <label><strong>Centro final</strong></label>
+              <input id="center${idx}" class="smallInput" placeholder="Ejemplo: (3,-1)">
+            </div>
+            <div>
+              <label><strong>Radio final</strong></label>
+              <input id="radius${idx}" class="smallInput" placeholder="Ejemplo: 5">
+            </div>
+          </div>
+          <div id="feedback${idx}" class="mini" style="margin-top:10px;"></div>
+        </div>
+      </div>
+    </div>
+  `).join("");
+  document.getElementById("practiceResults").innerHTML = "Escribe tus respuestas y luego presiona <strong>Revisar respuestas</strong>.";
+  typeset();
+}
+
+function insertAtCursor(id, text){
+  const el = document.getElementById(id);
+  el.focus();
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  el.value = el.value.substring(0,start) + text + el.value.substring(end);
+  el.selectionStart = el.selectionEnd = start + text.length;
+  const idx = parseInt(id.replace("ans",""));
+  previewInput(idx);
+}
+
+function previewInput(i){
+  const val = document.getElementById(`ans${i}`).value.trim();
+  const prev = document.getElementById(`preview${i}`);
+  if(!val){
+    prev.innerHTML = "Vista previa: <span class='mini'>escribe tu respuesta</span>";
+  }else{
+    prev.innerHTML = `Vista previa: \\(${val.replaceAll('\\\\','\\')}\\)`;
+  }
+  typeset();
+}
+
+function normalizeExpr(s){
+  return s.toLowerCase()
+    .replace(/\s+/g,'')
+    .replace(/[{}]/g, m => m === '{' ? '(' : ')')
+    .replace(/−/g,'-')
+    .replace(/²/g,'^2');
+}
+
+function normalizeCenter(s){
+  return s.toLowerCase().replace(/\s+/g,'').replace(/[\[\]]/g,'(').replace(/[{}]/g,'(').replace(/\)/g,')');
+}
+
+function canonicalForItem(it){
+  const option1 = normalizeExpr(equation(it.goalH,it.goalK,it.r));
+  const tx = it.goalH >= 0 ? `(x-${it.goalH})^2` : `(x-(-${Math.abs(it.goalH)}))^2`;
+  const ty = it.goalK >= 0 ? `(y-${it.goalK})^2` : `(y-(-${Math.abs(it.goalK)}))^2`;
+  const option2 = normalizeExpr(`${tx}+${ty}=${it.r*it.r}`);
+  return [option1, option2];
+}
+
+function acceptedCenters(it){
+  return [
+    normalizeCenter(`(${it.goalH},${it.goalK})`),
+    normalizeCenter(`${it.goalH},${it.goalK}`)
+  ];
+}
+
+function gradePractice(){
+  let score = 0;
+  practiceItems.forEach((it, idx)=>{
+    const ans = normalizeExpr(document.getElementById(`ans${idx}`).value);
+    const centerAns = normalizeCenter(document.getElementById(`center${idx}`).value);
+    const radiusAns = document.getElementById(`radius${idx}`).value.trim();
+    const eqOk = canonicalForItem(it).includes(ans);
+    const centerOk = acceptedCenters(it).includes(centerAns);
+    const radiusOk = radiusAns === String(it.r);
+    let itemScore = 0;
+    if(eqOk) itemScore++;
+    if(centerOk) itemScore++;
+    if(radiusOk) itemScore++;
+    score += itemScore;
+
+    const fb = document.getElementById(`feedback${idx}`);
+    fb.innerHTML = `
+      ${eqOk ? `<span class="badge good">Ecuación correcta</span>` : `<span class="badge bad">Ecuación incorrecta</span>`}
+      ${centerOk ? `<span class="badge good">Centro correcto</span>` : `<span class="badge bad">Centro incorrecto</span>`}
+      ${radiusOk ? `<span class="badge good">Radio correcto</span>` : `<span class="badge bad">Radio incorrecto</span>`}
+      <div style="margin-top:8px">
+        Respuesta esperada: \\(${equation(it.goalH,it.goalK,it.r)}\\)<br>
+        Centro final: (${it.goalH}, ${it.goalK})<br>
+        Radio final: ${it.r}
+      </div>
+    `;
+  });
+  document.getElementById("practiceResults").innerHTML =
+    `Obtuviste <strong>${score}</strong> puntos de <strong>${practiceItems.length * 3}</strong>. Cada ejercicio vale 3 puntos: ecuación, centro y radio.`;
+  typeset();
+}
+
+function typeset(){
+  if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise().catch(()=>{}); }
+}
+
+loadExample(0);
+</script>
+</body>
+</html>
