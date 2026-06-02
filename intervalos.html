@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intervalos A y B</title>
+
+<style>
+  :root{
+    --a:#2563eb;
+    --b:#dc2626;
+    --u:#7c3aed;
+    --i:#059669;
+    --ink:#111827;
+    --bg:#f3f6fb;
+    --card:#ffffff;
+    --border:#d1d5db;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:15px;
+  }
+
+  main{
+    width:98vw;
+    height:100vh;
+    margin:0 auto;
+    display:grid;
+    grid-template-rows:auto auto 1fr auto;
+    gap:6px;
+    padding:6px;
+  }
+
+  h1{
+    margin:0;
+    text-align:center;
+    font-size:22px;
+  }
+
+  .top{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+  }
+
+  .set{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px;
+  }
+
+  .set h2{
+    margin:0 0 6px;
+    font-size:18px;
+  }
+
+  .set.a h2{color:var(--a);}
+  .set.b h2{color:var(--b);}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:5px;
+    align-items:end;
+  }
+
+  label{
+    font-weight:bold;
+    font-size:13px;
+    display:block;
+    margin-bottom:2px;
+  }
+
+  input[type="number"]{
+    width:100%;
+    padding:4px;
+    font-size:15px;
+    border:1px solid var(--border);
+    border-radius:6px;
+  }
+
+  .check{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    font-weight:bold;
+    font-size:13px;
+    min-height:32px;
+  }
+
+  input[type="checkbox"]{
+    width:17px;
+    height:17px;
+  }
+
+  .actions{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:6px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    border:0;
+    border-radius:8px;
+    padding:8px 12px;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+
+  .btn-u{background:var(--u);}
+  .btn-i{background:var(--i);}
+  .btn-r{background:#374151;}
+
+  .line-box{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:4px;
+    overflow:hidden;
+  }
+
+  svg{
+    width:100%;
+    height:100%;
+    min-height:250px;
+    display:block;
+  }
+
+  .notation{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+  }
+
+  .note{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px;
+    min-height:78px;
+  }
+
+  .note h3{
+    margin:0 0 4px;
+    font-size:16px;
+  }
+
+  .math{
+    font-family:"Times New Roman", Times, serif;
+    font-size:21px;
+    line-height:1.35;
+  }
+
+  .error{
+    color:#b91c1c;
+    font-weight:bold;
+    text-align:center;
+    min-height:18px;
+  }
+
+  @media(max-width:850px){
+    main{
+      height:auto;
+      min-height:100vh;
+      grid-template-rows:auto auto auto auto;
+    }
+
+    .top,.notation{
+      grid-template-columns:1fr;
+    }
+
+    .grid{
+      grid-template-columns:repeat(2,1fr);
+    }
+
+    .line-box{
+      height:330px;
+    }
+  }
+</style>
+</head>
+
+<body>
+<main>
+  <h1>Intervalos de números reales</h1>
+
+  <section class="top">
+    <div class="set a">
+      <h2>A</h2>
+      <div class="grid">
+        <div>
+          <label>Izq.</label>
+          <input type="number" id="aLeft" value="-4">
+        </div>
+        <div>
+          <label>Der.</label>
+          <input type="number" id="aRight" value="3">
+        </div>
+        <label class="check"><input type="checkbox" id="aLeftClosed" checked> Izq. cerr.</label>
+        <label class="check"><input type="checkbox" id="aRightClosed"> Der. cerr.</label>
+        <label class="check"><input type="checkbox" id="aNegInf"> −∞</label>
+        <label class="check"><input type="checkbox" id="aPosInf"> +∞</label>
+      </div>
+    </div>
+
+    <div class="set b">
+      <h2>B</h2>
+      <div class="grid">
+        <div>
+          <label>Izq.</label>
+          <input type="number" id="bLeft" value="1">
+        </div>
+        <div>
+          <label>Der.</label>
+          <input type="number" id="bRight" value="7">
+        </div>
+        <label class="check"><input type="checkbox" id="bLeftClosed"> Izq. cerr.</label>
+        <label class="check"><input type="checkbox" id="bRightClosed" checked> Der. cerr.</label>
+        <label class="check"><input type="checkbox" id="bNegInf"> −∞</label>
+        <label class="check"><input type="checkbox" id="bPosInf"> +∞</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="actions">
+    <button class="btn-u" id="toggleUnion">Mostrar A ∪ B</button>
+    <button class="btn-i" id="toggleIntersection">Mostrar A ∩ B</button>
+    <button class="btn-r" id="resetBtn">Reiniciar</button>
+    <span class="error" id="errorBox"></span>
+  </section>
+
+  <section class="line-box">
+    <svg id="svg" viewBox="0 0 1000 310" preserveAspectRatio="none"></svg>
+  </section>
+
+  <section class="notation">
+    <div class="note">
+      <h3>Notación de intervalos</h3>
+      <div class="math" id="intervalNotation"></div>
+    </div>
+
+    <div class="note">
+      <h3>Notación por comprensión</h3>
+      <div class="math" id="setBuilderNotation"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const el = id => document.getElementById(id);
+const svg = el("svg");
+
+let showUnion = false;
+let showIntersection = false;
+
+const XMIN = -10;
+const XMAX = 10;
+const leftPad = 55;
+const rightPad = 945;
+const axisY = 145;
+
+["aLeft","aRight","aLeftClosed","aRightClosed","aNegInf","aPosInf",
+ "bLeft","bRight","bLeftClosed","bRightClosed","bNegInf","bPosInf"]
+.forEach(id => el(id).addEventListener("input", update));
+
+el("toggleUnion").addEventListener("click", () => {
+  showUnion = !showUnion;
+  el("toggleUnion").textContent = showUnion ? "Ocultar A ∪ B" : "Mostrar A ∪ B";
+  update();
+});
+
+el("toggleIntersection").addEventListener("click", () => {
+  showIntersection = !showIntersection;
+  el("toggleIntersection").textContent = showIntersection ? "Ocultar A ∩ B" : "Mostrar A ∩ B";
+  update();
+});
+
+el("resetBtn").addEventListener("click", () => {
+  el("aLeft").value=-4; el("aRight").value=3;
+  el("aLeftClosed").checked=true; el("aRightClosed").checked=false;
+  el("aNegInf").checked=false; el("aPosInf").checked=false;
+
+  el("bLeft").value=1; el("bRight").value=7;
+  el("bLeftClosed").checked=false; el("bRightClosed").checked=true;
+  el("bNegInf").checked=false; el("bPosInf").checked=false;
+
+  showUnion=false; showIntersection=false;
+  el("toggleUnion").textContent="Mostrar A ∪ B";
+  el("toggleIntersection").textContent="Mostrar A ∩ B";
+  update();
+});
+
+function xScale(x){
+  return leftPad + (x - XMIN) * (rightPad - leftPad) / (XMAX - XMIN);
+}
+
+function readSet(prefix){
+  const negInf = el(prefix+"NegInf").checked;
+  const posInf = el(prefix+"PosInf").checked;
+
+  return {
+    name: prefix.toUpperCase(),
+    left: negInf ? -Infinity : Number(el(prefix+"Left").value),
+    right: posInf ? Infinity : Number(el(prefix+"Right").value),
+    leftClosed: negInf ? false : el(prefix+"LeftClosed").checked,
+    rightClosed: posInf ? false : el(prefix+"RightClosed").checked,
+    negInf,
+    posInf
+  };
+}
+
+function isEmpty(s){
+  if(s.left > s.right) return true;
+  if(s.left === s.right && !(s.leftClosed && s.rightClosed)) return true;
+  return false;
+}
+
+function validate(s){
+  if(s.left < s.right) return "";
+  if(s.left === s.right && s.leftClosed && s.rightClosed) return "";
+  if(s.negInf || s.posInf) return "";
+  return `Revise ${s.name}`;
+}
+
+function intervalText(s){
+  if(isEmpty(s)) return "∅";
+
+  // Si el intervalo contiene un único valor, se escribe como conjunto unitario.
+  if(s.left === s.right && s.leftClosed && s.rightClosed){
+    return `{${s.left}}`;
+  }
+
+  const Ls = s.negInf ? "]" : (s.leftClosed ? "[" : "]");
+  const Rs = s.posInf ? "[" : (s.rightClosed ? "]" : "[");
+  const L = s.negInf ? "−∞" : s.left;
+  const R = s.posInf ? "+∞" : s.right;
+  return `${Ls}${L}, ${R}${Rs}`;
+}
+
+function inequalityText(s){
+  if(isEmpty(s)) return "sin solución";
+
+  // Si el intervalo contiene un único valor.
+  if(s.left === s.right && s.leftClosed && s.rightClosed){
+    return `x = ${s.left}`;
+  }
+
+  if(s.negInf && s.posInf) return "x ∈ ℝ";
+  if(s.negInf) return `x ${s.rightClosed ? "≤" : "<"} ${s.right}`;
+  if(s.posInf) return `${s.left} ${s.leftClosed ? "≤" : "<"} x`;
+  return `${s.left} ${s.leftClosed ? "≤" : "<"} x ${s.rightClosed ? "≤" : "<"} ${s.right}`;
+}
+
+function builderText(name,s){
+  if(isEmpty(s)) return `${name} = ∅`;
+  return `${name} = { x ∈ ℝ : ${inequalityText(s)} }`;
+}
+
+function intersection(a,b){
+  if(isEmpty(a) || isEmpty(b)) return empty();
+
+  let left, leftClosed;
+  if(a.left > b.left){ left=a.left; leftClosed=a.leftClosed; }
+  else if(a.left < b.left){ left=b.left; leftClosed=b.leftClosed; }
+  else { left=a.left; leftClosed=a.leftClosed && b.leftClosed; }
+
+  let right, rightClosed;
+  if(a.right < b.right){ right=a.right; rightClosed=a.rightClosed; }
+  else if(a.right > b.right){ right=b.right; rightClosed=b.rightClosed; }
+  else { right=a.right; rightClosed=a.rightClosed && b.rightClosed; }
+
+  const s = {name:"A ∩ B", left, right, leftClosed, rightClosed, negInf:left===-Infinity, posInf:right===Infinity};
+  return isEmpty(s) ? empty() : s;
+}
+
+function empty(){
+  return {name:"∅", left:1, right:0, leftClosed:false, rightClosed:false, negInf:false, posInf:false};
+}
+
+function compareLeft(a,b){
+  if(a.left !== b.left) return a.left < b.left ? -1 : 1;
+  if(a.leftClosed === b.leftClosed) return 0;
+  return a.leftClosed ? -1 : 1;
+}
+
+function compareRight(a,b){
+  if(a.right !== b.right) return a.right < b.right ? -1 : 1;
+  if(a.rightClosed === b.rightClosed) return 0;
+  return a.rightClosed ? 1 : -1;
+}
+
+function canMerge(a,b){
+  let first = compareLeft(a,b) <= 0 ? a : b;
+  let second = first === a ? b : a;
+
+  if(first.right > second.left) return true;
+  if(first.right < second.left) return false;
+  return first.rightClosed || second.leftClosed;
+}
+
+function unionParts(a,b){
+  if(isEmpty(a) && isEmpty(b)) return [];
+  if(isEmpty(a)) return [b];
+  if(isEmpty(b)) return [a];
+
+  if(!canMerge(a,b)){
+    return compareLeft(a,b) <= 0 ? [a,b] : [b,a];
+  }
+
+  let left, leftClosed, right, rightClosed;
+
+  if(compareLeft(a,b) <= 0){ left=a.left; leftClosed=a.leftClosed; }
+  else { left=b.left; leftClosed=b.leftClosed; }
+
+  if(compareRight(a,b) >= 0){ right=a.right; rightClosed=a.rightClosed; }
+  else { right=b.right; rightClosed=b.rightClosed; }
+
+  return [{name:"A ∪ B", left, right, leftClosed, rightClosed, negInf:left===-Infinity, posInf:right===Infinity}];
+}
+
+function unionText(parts){
+  if(parts.length === 0) return "∅";
+  return parts.map(intervalText).join(" ∪ ");
+}
+
+function unionBuilder(parts){
+  if(parts.length === 0) return "A ∪ B = ∅";
+  if(parts.length === 1) return `A ∪ B = { x ∈ ℝ : ${inequalityText(parts[0])} }`;
+  return `A ∪ B = { x ∈ ℝ : ${inequalityText(parts[0])} o ${inequalityText(parts[1])} }`;
+}
+
+function svgEl(tag, attrs){
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  Object.entries(attrs || {}).forEach(([k,v]) => n.setAttribute(k,v));
+  return n;
+}
+
+function text(x,y,str,size=16,color="#111827",weight="normal",anchor="middle"){
+  const t = svgEl("text",{x,y,"font-size":size,fill:color,"font-weight":weight,"text-anchor":anchor});
+  t.textContent = str;
+  svg.appendChild(t);
+}
+
+function drawAxis(){
+  svg.appendChild(svgEl("line",{x1:leftPad,y1:axisY,x2:rightPad,y2:axisY,stroke:"#111827","stroke-width":2}));
+  svg.appendChild(svgEl("polygon",{points:`${rightPad},${axisY} ${rightPad-12},${axisY-6} ${rightPad-12},${axisY+6}`,fill:"#111827"}));
+  svg.appendChild(svgEl("polygon",{points:`${leftPad},${axisY} ${leftPad+12},${axisY-6} ${leftPad+12},${axisY+6}`,fill:"#111827"}));
+
+  for(let x=XMIN; x<=XMAX; x++){
+    const px=xScale(x);
+    svg.appendChild(svgEl("line",{x1:px,y1:axisY-6,x2:px,y2:axisY+6,stroke:"#111827","stroke-width":1.5}));
+    text(px,axisY+24,String(x),13);
+  }
+
+  text(leftPad-28,axisY-12,"−∞",16,"#111827","bold");
+  text(rightPad+28,axisY-12,"+∞",16,"#111827","bold");
+}
+
+function endpoint(x,y,closed,color){
+  if(!isFinite(x)) return;
+  svg.appendChild(svgEl("circle",{
+    cx:xScale(x),cy:y,r:8,
+    fill:closed ? color : "#ffffff",
+    stroke:color,
+    "stroke-width":3
+  }));
+}
+
+function drawInterval(s,y,color,label){
+  if(isEmpty(s)) return;
+
+  const x1 = s.negInf ? leftPad : xScale(s.left);
+  const x2 = s.posInf ? rightPad : xScale(s.right);
+
+  svg.appendChild(svgEl("line",{
+    x1,y1:y,x2,y2:y,
+    stroke:color,
+    "stroke-width":11,
+    "stroke-linecap":"round",
+    opacity:.92
+  }));
+
+  if(s.negInf){
+    svg.appendChild(svgEl("polygon",{points:`${leftPad},${y} ${leftPad+16},${y-9} ${leftPad+16},${y+9}`,fill:color}));
+  }else{
+    endpoint(s.left,y,s.leftClosed,color);
+  }
+
+  if(s.posInf){
+    svg.appendChild(svgEl("polygon",{points:`${rightPad},${y} ${rightPad-16},${y-9} ${rightPad-16},${y+9}`,fill:color}));
+  }else{
+    endpoint(s.right,y,s.rightClosed,color);
+  }
+
+  text(20,y+5,label,20,color,"bold","start");
+}
+
+function update(){
+  ["a","b"].forEach(p => {
+    const neg=el(p+"NegInf").checked;
+    const pos=el(p+"PosInf").checked;
+    el(p+"Left").disabled=neg;
+    el(p+"LeftClosed").disabled=neg;
+    el(p+"Right").disabled=pos;
+    el(p+"RightClosed").disabled=pos;
+  });
+
+  const A=readSet("a");
+  const B=readSet("b");
+  const error = validate(A) || validate(B);
+  el("errorBox").textContent = error;
+
+  svg.innerHTML="";
+  drawAxis();
+
+  if(error){
+    el("intervalNotation").innerHTML = "";
+    el("setBuilderNotation").innerHTML = "";
+    return;
+  }
+
+  drawInterval(A,75,"#2563eb","A");
+  drawInterval(B,112,"#dc2626","B");
+
+  const U=unionParts(A,B);
+  const I=intersection(A,B);
+
+  if(showUnion){
+    U.forEach(s => drawInterval(s,205,"#7c3aed","A ∪ B"));
+  }
+
+  if(showIntersection){
+    if(isEmpty(I)){
+      text(430,252,"A ∩ B = ∅",24,"#059669","bold");
+    }else{
+      drawInterval(I,250,"#059669","A ∩ B");
+    }
+  }
+
+  let symbolic = `<b>A</b> = ${intervalText(A)} &nbsp;&nbsp; <b>B</b> = ${intervalText(B)}`;
+  if(showUnion) symbolic += `<br><b>A ∪ B</b> = ${unionText(U)}`;
+  if(showIntersection) symbolic += `<br><b>A ∩ B</b> = ${intervalText(I)}`;
+  el("intervalNotation").innerHTML = symbolic;
+
+  let builder = `${builderText("A",A)}<br>${builderText("B",B)}`;
+  if(showUnion) builder += `<br>${unionBuilder(U)}`;
+  if(showIntersection) builder += `<br>${builderText("A ∩ B",I)}`;
+  el("setBuilderNotation").innerHTML = builder;
+}
+
+update();
+</script>
+</body>
+</html>
