@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Polígonos irregulares: perímetro y área</title>
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --card:#ffffff;
+    --ink:#172033;
+    --muted:#5c667a;
+    --line:#cfd6e6;
+    --axis:#26364f;
+    --accent:#273f8f;
+    --soft:#e9eefc;
+    --good:#0f766e;
+    --warn:#8a4b00;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  header{
+    background:linear-gradient(135deg,#1f2f75,#415dd1);
+    color:white;
+    padding:22px 18px;
+    text-align:center;
+  }
+  header h1{margin:0;font-size:clamp(1.35rem,2.6vw,2.2rem)}
+  header p{margin:8px auto 0;max-width:900px;opacity:.95}
+  main{max-width:1180px;margin:22px auto;padding:0 14px 36px}
+  .panel{
+    display:grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap:18px;
+    align-items:start;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:0 8px 24px rgba(23,32,51,.08);
+    padding:18px;
+  }
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  button, select{
+    border:none;
+    border-radius:12px;
+    padding:11px 14px;
+    font-weight:700;
+    font-size:.96rem;
+  }
+  button{
+    cursor:pointer;
+    background:var(--accent);
+    color:white;
+    box-shadow:0 4px 10px rgba(39,63,143,.22);
+  }
+  button.secondary{background:#eef2ff;color:#1e2f78;box-shadow:none;border:1px solid #cfd8ff}
+  button.ghost{background:white;color:#1e2f78;box-shadow:none;border:1px solid var(--line)}
+  button:hover{filter:brightness(.96)}
+  label{font-weight:700;color:var(--muted)}
+  select{background:white;border:1px solid var(--line);color:var(--ink)}
+  .question{
+    background:var(--soft);
+    border-left:6px solid var(--accent);
+    padding:12px 14px;
+    border-radius:12px;
+    margin-bottom:14px;
+    line-height:1.45;
+  }
+  .coords{
+    display:none;
+  }
+  .coord{
+    background:#f7f9ff;
+    border:1px solid var(--line);
+    padding:8px 10px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:700;
+  }
+  .svgWrap{width:100%;overflow:auto;text-align:center}
+  svg{max-width:100%;height:auto;background:white;border-radius:14px;border:1px solid var(--line)}
+  .solution{display:none;margin-top:14px}
+  .solution.show{display:block}
+  .solution h2{font-size:1.15rem;margin:10px 0;color:#1f2f75}
+  .step{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px;
+    margin:10px 0;
+    background:#fff;
+  }
+  .math{font-family: "Cambria Math", Georgia, serif;font-size:1.03rem;line-height:1.65;overflow-x:auto}
+  table{border-collapse:collapse;width:100%;margin:10px 0;background:white}
+  th,td{border:1px solid var(--line);padding:8px;text-align:center}
+  th{background:#eef2ff;color:#1e2f78}
+  .answerBox{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px
+  }
+  .blank{
+    border:2px dashed #aab4cf;border-radius:12px;min-height:52px;padding:10px;background:#fbfcff
+  }
+  .note{font-size:.92rem;color:var(--muted);line-height:1.35}
+  .printArea{display:none}
+  .pill{display:inline-block;background:#eef2ff;color:#1e2f78;border:1px solid #cfd8ff;border-radius:999px;padding:4px 9px;font-weight:700}
+  .result{font-weight:800;color:var(--good)}
+  @media(max-width:880px){.panel{grid-template-columns:1fr}.answerBox{grid-template-columns:1fr}}
+  @media print{
+    body{background:white}
+    header, main > .panel, main > .noteFooter{display:none!important}
+    .printArea{display:block!important}
+    .printPage{page-break-after:always;padding:12mm;font-family:Arial, sans-serif;color:#111}
+    .printPage:last-child{page-break-after:auto}
+    .printTitle{text-align:center;margin:0 0 8px;font-size:18pt}
+    .exerciseBlock{border:1px solid #999;border-radius:10px;padding:10px;margin:10px 0;break-inside:avoid}
+    .exerciseGrid{display:grid;grid-template-columns: 1fr 1fr;gap:8px;align-items:start}
+    .miniSvg svg{width:100%;border:1px solid #aaa}
+    .space{height:42px;border-bottom:1px solid #aaa;margin:6px 0}
+    .solutionPrint{font-size:9.5pt;line-height:1.25;margin-top:6px;background:#f7f7f7;padding:6px;border-radius:6px}
+    th,td{font-size:9pt;padding:3px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Perímetro y área de polígonos irregulares</h1>
+  <p>Polígonos convexos de máximo 6 lados ubicados en un sistema de coordenadas.</p>
+</header>
+<main>
+  <section class="panel">
+    <div class="card">
+      <div class="toolbar">
+        <button onclick="newExercise()">Generar nueva pregunta</button>
+        <button class="secondary" onclick="toggleSolution()">Mostrar / ocultar solución</button>
+        <button class="ghost" onclick="makeWorksheet(false)">PDF: 10 ejercicios sin soluciones</button>
+        <button class="ghost" onclick="makeWorksheet(true)">PDF: 10 ejercicios con soluciones</button>
+        <label for="sides">Lados:</label>
+        <select id="sides" onchange="newExercise()">
+          <option value="random">Aleatorio</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+      <div id="question" class="question"></div>
+      <div class="coords" id="coords"></div>
+      <div class="svgWrap" id="graph"></div>
+      <div class="answerBox">
+        <div class="blank"><strong>Perímetro:</strong></div>
+        <div class="blank"><strong>Área:</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="note">
+        <span class="pill">Método</span>
+        <p>El estudiante debe identificar visualmente los pares ordenados en el gráfico. La solución sí muestra las coordenadas usadas en el proceso.</p>
+      </div>
+      <div id="solution" class="solution"></div>
+    </div>
+  </section>
+  <p class="note noteFooter">Al presionar cualquiera de los botones PDF, se abrirá la ventana de impresión. Elige “Guardar como PDF”. Puedes generar una versión sin soluciones para estudiantes o una versión con soluciones para revisión.</p>
+  <section id="printArea" class="printArea"></section>
+</main>
+<script>
+const letters = ['A','B','C','D','E','F'];
+let current = null;
+let showSol = false;
+
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function choice(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1}
+function dist(p,q){const dx=q.x-p.x, dy=q.y-p.y; return {dx,dy,sq:dx*dx+dy*dy,val:Math.sqrt(dx*dx+dy*dy)}}
+function polygonArea(pts){
+  let s1=0,s2=0;
+  for(let i=0;i<pts.length;i++){
+    const j=(i+1)%pts.length;
+    s1 += pts[i].x*pts[j].y;
+    s2 += pts[i].y*pts[j].x;
+  }
+  return {s1,s2,area:Math.abs(s1-s2)/2};
+}
+function centroid(pts){return {x:pts.reduce((a,p)=>a+p.x,0)/pts.length, y:pts.reduce((a,p)=>a+p.y,0)/pts.length}}
+function sortCCW(pts){const c=centroid(pts); return pts.slice().sort((a,b)=>Math.atan2(a.y-c.y,a.x-c.x)-Math.atan2(b.y-c.y,b.x-c.x))}
+function cross(o,a,b){return (a.x-o.x)*(b.y-o.y)-(a.y-o.y)*(b.x-o.x)}
+function isConvex(pts){
+  if(pts.length<3) return false;
+  let sign=0;
+  for(let i=0;i<pts.length;i++){
+    const z=cross(pts[i], pts[(i+1)%pts.length], pts[(i+2)%pts.length]);
+    if(Math.abs(z)<1e-9) return false;
+    if(sign===0) sign=Math.sign(z); else if(Math.sign(z)!==sign) return false;
+  }
+  return true;
+}
+function hasDuplicate(pts){const set=new Set(pts.map(p=>p.x+','+p.y)); return set.size!==pts.length}
+function generatePolygon(n){
+  for(let attempt=0; attempt<1000; attempt++){
+    const pts=[];
+    const used=new Set();
+    const baseAngles=[];
+    for(let i=0;i<n;i++) baseAngles.push((2*Math.PI*i/n)+Math.random()*0.55);
+    const cx=randInt(-1,1), cy=randInt(-1,1);
+    for(let i=0;i<n;i++){
+      const r=randInt(3,7);
+      let x=Math.round(cx+r*Math.cos(baseAngles[i]));
+      let y=Math.round(cy+r*Math.sin(baseAngles[i]));
+      x=Math.max(-8,Math.min(8,x)); y=Math.max(-8,Math.min(8,y));
+      if(used.has(x+','+y)) { x += randInt(-1,1); y += randInt(-1,1); }
+      pts.push({x,y}); used.add(x+','+y);
+    }
+    let ordered=sortCCW(pts);
+    // Evitar lados horizontales/verticales en exceso, pero se permiten algunos.
+    if(!hasDuplicate(ordered) && isConvex(ordered)) return ordered.map((p,i)=>({...p,label:letters[i]}));
+  }
+  // Respaldo seguro
+  const backups={
+    3:[{x:-5,y:-2},{x:3,y:-4},{x:1,y:5}],
+    4:[{x:-6,y:-2},{x:-1,y:-5},{x:5,y:0},{x:0,y:5}],
+    5:[{x:-6,y:-1},{x:-3,y:-5},{x:4,y:-4},{x:6,y:2},{x:-1,y:6}],
+    6:[{x:-6,y:0},{x:-4,y:-5},{x:2,y:-6},{x:6,y:-1},{x:4,y:5},{x:-2,y:6}]
+  };
+  return backups[n].map((p,i)=>({...p,label:letters[i]}));
+}
+function niceRoot(sq){
+  const r=Math.sqrt(sq);
+  if(Number.isInteger(r)) return String(r);
+  let m=1, inside=sq;
+  for(let k=Math.floor(Math.sqrt(sq)); k>=2; k--){
+    if(sq%(k*k)===0){m=k; inside=sq/(k*k); break;}
+  }
+  if(m===1) return `√${sq}`;
+  return `${m}√${inside}`;
+}
+function perimeterExact(ds){
+  const counts={};
+  ds.forEach(d=>{const key=niceRoot(d.sq); counts[key]=(counts[key]||0)+1});
+  return Object.entries(counts).map(([k,c])=>c===1?k:`${c}(${k})`).join(' + ');
+}
+function renderSVG(pts, size=560, label=true){
+  const min=-9,max=9, span=max-min, pad=34;
+  const W=size,H=size;
+  const sx=x=>pad+(x-min)*(W-2*pad)/span;
+  const sy=y=>H-pad-(y-min)*(H-2*pad)/span;
+  let grid='';
+  for(let v=min; v<=max; v++){
+    const major=v===0;
+    grid += `<line x1="${sx(v)}" y1="${sy(min)}" x2="${sx(v)}" y2="${sy(max)}" stroke="${major?'#26364f':'#d9deea'}" stroke-width="${major?2:1}"/>`;
+    grid += `<line x1="${sx(min)}" y1="${sy(v)}" x2="${sx(max)}" y2="${sy(v)}" stroke="${major?'#26364f':'#d9deea'}" stroke-width="${major?2:1}"/>`;
+    if(v!==0){
+      grid += `<text x="${sx(v)}" y="${sy(0)+15}" font-size="11" text-anchor="middle" fill="#4b5568">${v}</text>`;
+      grid += `<text x="${sx(0)-8}" y="${sy(v)+4}" font-size="11" text-anchor="end" fill="#4b5568">${v}</text>`;
+    }
+  }
+  const points=pts.map(p=>`${sx(p.x)},${sy(p.y)}`).join(' ');
+  let vertices='';
+  pts.forEach(p=>{
+    vertices += `<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="5" fill="#1f2f75"/>`;
+    if(label) vertices += `<text x="${sx(p.x)+9}" y="${sy(p.y)-9}" font-size="18" font-weight="700" fill="#1f2f75">${p.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Polígono en plano cartesiano">
+    <rect x="0" y="0" width="${W}" height="${H}" fill="white"/>
+    ${grid}
+    <text x="${W-20}" y="${sy(0)-8}" font-size="14" font-weight="700" fill="#26364f">x</text>
+    <text x="${sx(0)+8}" y="20" font-size="14" font-weight="700" fill="#26364f">y</text>
+    <polygon points="${points}" fill="rgba(65,93,209,.18)" stroke="#1f2f75" stroke-width="3"/>
+    ${vertices}
+  </svg>`;
+}
+function exerciseData(n=null){
+  const selected=document.getElementById('sides')?.value || 'random';
+  const sides=n || (selected==='random'?randInt(3,6):parseInt(selected));
+  const pts=generatePolygon(sides);
+  const ds=pts.map((p,i)=>dist(p,pts[(i+1)%pts.length]));
+  const area=polygonArea(pts);
+  const peri=ds.reduce((a,d)=>a+d.val,0);
+  return {pts,ds,area,peri};
+}
+function coordText(pts){return pts.map(p=>`${p.label}(${p.x}, ${p.y})`).join(', ')}
+function newExercise(){
+  current=exerciseData(); showSol=false;
+  document.getElementById('question').innerHTML = `<strong>Pregunta.</strong> Observe el polígono irregular convexo ${current.pts.map(p=>p.label).join('')} en el sistema de coordenadas. Identifique visualmente los pares ordenados de sus vértices y calcule su perímetro y su área.`;
+  document.getElementById('coords').innerHTML = '';
+  document.getElementById('graph').innerHTML = renderSVG(current.pts);
+  renderSolution();
+}
+function renderSolution(){
+  const pts=current.pts, ds=current.ds, ar=current.area;
+  const rows=ds.map((d,i)=>{
+    const p=pts[i], q=pts[(i+1)%pts.length];
+    return `<tr><td>${p.label}${q.label}</td><td>(${q.x}−${p.x})² + (${q.y}−${p.y})²</td><td>${d.dx*d.dx} + ${d.dy*d.dy}</td><td>${niceRoot(d.sq)}</td><td>${d.val.toFixed(2)}</td></tr>`
+  }).join('');
+  const s1Terms=pts.map((p,i)=>`${p.x}·${pts[(i+1)%pts.length].y}`).join(' + ');
+  const s2Terms=pts.map((p,i)=>`${p.y}·${pts[(i+1)%pts.length].x}`).join(' + ');
+  const sol=`
+    <h2>Proceso de solución</h2>
+    <div class="step">
+      <strong>Coordenadas identificadas desde el gráfico</strong>
+      <div class="math">${coordText(pts)}</div>
+    </div>
+    <div class="step">
+      <strong>1. Distancias para el perímetro</strong>
+      <div class="math">d = √[(x₂−x₁)² + (y₂−y₁)²]</div>
+      <table><thead><tr><th>Lado</th><th>Sustitución</th><th>Suma</th><th>Exacto</th><th>Aproximado</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="math">P = ${perimeterExact(ds)} ≈ <span class="result">${current.peri.toFixed(2)} unidades</span></div>
+    </div>
+    <div class="step">
+      <strong>2. Área con fórmula del zapatero</strong>
+      <div class="math">A = 1/2 |(x₁y₂ + x₂y₃ + ... + xₙy₁) − (y₁x₂ + y₂x₃ + ... + yₙx₁)|</div>
+      <div class="math">S₁ = ${s1Terms} = ${ar.s1}</div>
+      <div class="math">S₂ = ${s2Terms} = ${ar.s2}</div>
+      <div class="math">A = 1/2 |${ar.s1} − ${ar.s2}| = <span class="result">${ar.area.toFixed(1)} unidades²</span></div>
+    </div>`;
+  const el=document.getElementById('solution');
+  el.innerHTML=sol;
+  el.className = showSol ? 'solution show':'solution';
+}
+function toggleSolution(){showSol=!showSol; renderSolution()}
+function solutionMini(ex){
+  const pts=ex.pts, ds=ex.ds, ar=ex.area;
+  const sides=ds.map((d,i)=>`${pts[i].label}${pts[(i+1)%pts.length].label}=${niceRoot(d.sq)}`).join(', ');
+  return `<div class="solutionPrint"><strong>Solución:</strong><br>
+    Coordenadas: ${coordText(pts)}.<br>
+    Lados: ${sides}.<br>
+    Perímetro: ${perimeterExact(ds)} ≈ ${ex.peri.toFixed(2)} u.<br>
+    Área: A = 1/2 |${ar.s1} − ${ar.s2}| = ${ar.area.toFixed(1)} u².
+  </div>`;
+}
+function makeWorksheet(includeSolutions=false){
+  const area=document.getElementById('printArea');
+  const exercises=[];
+  for(let i=0;i<10;i++) exercises.push(exerciseData(randInt(3,6)));
+  let html=`<div class="printPage"><h1 class="printTitle">Práctica: perímetro y área de polígonos irregulares</h1><p><strong>${includeSolutions ? 'Versión con soluciones' : 'Versión para estudiantes'}</strong></p><p>Nombre: ________________________________ Sección: __________ Fecha: __________</p>`;
+  exercises.forEach((ex,i)=>{
+    html += `<div class="exerciseBlock">
+      <strong>Ejercicio ${i+1}.</strong> Observe el gráfico, identifique visualmente los pares ordenados de los vértices y calcule el perímetro y el área del polígono ${ex.pts.map(p=>p.label).join('')}.
+      <div class="exerciseGrid">
+        <div class="miniSvg">${renderSVG(ex.pts,420,true)}</div>
+        <div>
+          <p><strong>Trabajo del estudiante:</strong></p>
+          <div class="space">Perímetro:</div>
+          <div class="space">Área:</div>
+          ${includeSolutions ? solutionMini(ex) : ""}
+        </div>
+      </div>
+    </div>`;
+    if(i===4) html += `</div><div class="printPage"><h1 class="printTitle">Práctica: perímetro y área de polígonos irregulares</h1><p><strong>${includeSolutions ? 'Versión con soluciones' : 'Versión para estudiantes'}</strong></p>`;
+  });
+  html += `</div>`;
+  area.innerHTML=html;
+  window.print();
+}
+newExercise();
+</script>
+</body>
+</html>
