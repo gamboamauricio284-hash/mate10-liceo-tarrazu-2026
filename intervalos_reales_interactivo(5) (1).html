@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Intervalos de números reales</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#142033;--muted:#607086;--blue:#2457c5;--green:#16835f;--red:#bd3838;--line:#d9e2f2}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#173f91,#167466);color:#fff;text-align:center;padding:22px}h1{margin:0;font-size:28px}
+main{max-width:1180px;margin:20px auto;padding:0 14px}.grid{display:grid;grid-template-columns:1fr 340px;gap:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 22px rgba(20,32,51,.07);padding:18px;margin-bottom:16px}
+h2{margin:0 0 12px}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}button,select{font-size:15px;border:1px solid #c8d2e5;border-radius:10px;padding:10px 12px;background:white;color:var(--ink)}button{cursor:pointer;font-weight:700}.primary{background:var(--blue);color:white;border-color:var(--blue)}.okbtn{background:var(--green);color:white;border-color:var(--green)}.pdf{background:#27364e;color:white;border-color:#27364e}
+.question{font-size:19px;line-height:1.42;margin:10px 0}.math{font-family:'Times New Roman',serif;font-size:22px}.graphBox{background:#fff;border:1px solid #d8e1ef;border-radius:12px;padding:8px;margin:10px 0;overflow:auto}.legend{font-size:12px;color:#5b687b;margin-top:4px}.options{display:grid;gap:10px;margin-top:12px}.option{border:2px solid #d8e1ef;border-radius:12px;background:#fbfcff;padding:10px;display:flex;gap:9px;align-items:flex-start;cursor:pointer}.option:hover{border-color:#94aad6}.option input{display:none}.xbox{width:24px;height:24px;border:2px solid #293a52;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex:0 0 24px}.option:has(input:checked) .xbox::after{content:'X'}.choiceLetter{font-weight:700;margin-right:5px}.correct{border-color:#14935f;background:#eefcf5}.wrong{border-color:#c43d3d;background:#fff1f1}.result{font-weight:700;margin-top:12px}.good{color:#0b6a3f}.bad{color:#8f1f1f}.solution{display:none;margin-top:14px;border-left:5px solid var(--blue);background:#f7fbff;padding:14px;border-radius:10px;line-height:1.55}.solution.show{display:block}.side p{margin:8px 0;color:var(--muted);line-height:1.42}.tag{display:inline-block;background:#eef3ff;border:1px solid #cfdbf5;padding:6px 9px;border-radius:999px;margin:3px;font-size:13px}.numline{max-width:100%;height:auto}.small{font-size:13px;color:#617086}.pdfPage{background:white;color:#111;padding:12px;font-family:Arial,Helvetica,sans-serif}.pdfTitle{text-align:center;margin-bottom:8px}.pdfItem{break-inside:avoid;border:1px solid #d5dce8;border-radius:10px;padding:10px;margin:8px 0}.pdfOptions{display:grid;gap:6px;margin-top:7px}.pdfOption{font-size:13px}.pdfSol{background:#f7fbff;border-left:4px solid #2457c5;margin-top:7px;padding:7px;font-size:12px;line-height:1.35}.footerNote{text-align:center;color:#666;font-size:11px;margin-top:10px}.svgOpt{display:block;margin-top:4px}
+@media(max-width:850px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>Intervalos de números reales</h1></header>
+<main>
+<div class="grid">
+<section>
+<div class="card">
+<h2 id="temaActual">Ejercicio</h2>
+<div class="controls">
+<select id="tipo">
+<option value="aleatorio">Tema aleatorio</option>
+<option value="escritura">Cambio de escritura</option>
+<option value="grafica">Seleccionar gráfica</option>
+<option value="desdeGrafica">Desde representación gráfica</option>
+<option value="union">Unión</option>
+<option value="interseccion">Intersección</option>
+<option value="complemento">Complemento</option>
+</select>
+<button class="primary" onclick="nuevaPregunta()">Nueva pregunta</button>
+<button onclick="calificar()">Calificar</button>
+<button class="okbtn" onclick="mostrarSolucion()">Mostrar solución</button>
+</div>
+<div id="pregunta" class="question"></div>
+<div id="graficoPregunta"></div>
+<div id="opciones" class="options"></div>
+<div id="resultado" class="result"></div>
+<div id="solucion" class="solution"></div>
+</div>
+</section>
+<aside class="card side">
+<h2>Descargas</h2>
+<p>Todos los ejercicios se presentan como selección única para marcar con X.</p>
+<div class="controls">
+<button class="pdf" onclick="generarPDF(false)">PDF: 10 ejercicios sin soluciones</button>
+<button class="pdf" onclick="generarPDF(true)">PDF: 10 ejercicios con soluciones</button>
+</div>
+<h2 style="margin-top:18px">Incluye</h2>
+<span class="tag">Intervalo</span><span class="tag">Comprensión</span><span class="tag">Desigualdad</span><span class="tag">Gráfica</span><span class="tag">Unión</span><span class="tag">Intersección</span><span class="tag">Complemento en ℝ</span>
+<p>En la recta numérica se usan círculos sin rellenar para extremos abiertos, círculos rellenos para extremos cerrados y flechas cuando el intervalo se extiende hacia infinito.</p>
+</aside>
+</div>
+</main>
+<div id="pdfArea" style="display:none"></div>
+<script>
+let actual=null;
+const temas=['escritura','grafica','desdeGrafica','union','interseccion','complemento'];
+const nombres={escritura:'Cambio de escritura',grafica:'Seleccionar representación gráfica',desdeGrafica:'Interpretar representación gráfica',union:'Unión de intervalos',interseccion:'Intersección de intervalos',complemento:'Complemento en ℝ'};
+const letras=['A','B','C','D'];
+const rint=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const sample=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function fmtNum(x){if(x===Infinity)return '+∞'; if(x===-Infinity)return '-∞'; return String(x)}
+function intervalStr(I){
+  if(I.a===-Infinity && I.b===Infinity) return ']-∞, +∞[';
+  const L = I.a===-Infinity ? ']' : (I.lc?'[':']');
+  const R = I.b===Infinity ? '[' : (I.rc?']':'[');
+  return `${L}${fmtNum(I.a)}, ${fmtNum(I.b)}${R}`;
+}
+function setStr(I){
+  if(I.a===-Infinity && I.b===Infinity) return '{x ∈ ℝ | x ∈ ℝ}';
+  if(I.a===-Infinity) return `{x ∈ ℝ | x ${I.rc?'≤':'<'} ${I.b}}`;
+  if(I.b===Infinity) return `{x ∈ ℝ | x ${I.lc?'≥':'>'} ${I.a}}`;
+  return `{x ∈ ℝ | ${I.a} ${I.lc?'≤':'<'} x ${I.rc?'≤':'<'} ${I.b}}`;
+}
+function ineqStr(I){
+  if(I.a===-Infinity && I.b===Infinity) return 'x ∈ ℝ';
+  if(I.a===-Infinity) return `x ${I.rc?'≤':'<'} ${I.b}`;
+  if(I.b===Infinity) return `x ${I.lc?'≥':'>'} ${I.a}`;
+  return `${I.a} ${I.lc?'≤':'<'} x ${I.rc?'≤':'<'} ${I.b}`;
+}
+function setToText(S){ if(S.empty) return '∅'; return S.map(intervalStr).join(' ∪ ') }
+function setToSetText(S){ if(S.empty) return '∅'; return S.map(setStr).join(' ∪ ') }
+function randFiniteInterval(){let a=rint(-7,3), b=rint(a+2,9); return {a,b,lc:Math.random()<.5,rc:Math.random()<.5}}
+function randHalfInterval(){let c=rint(-6,6); return Math.random()<.5?{a:-Infinity,b:c,lc:false,rc:Math.random()<.5}:{a:c,b:Infinity,lc:Math.random()<.5,rc:false}}
+function randInterval(allowInf=true){return allowInf && Math.random()<.35 ? randHalfInterval() : randFiniteInterval()}
+function relatedIntervals(){
+  let a=rint(-7,-2), b=rint(a+2,3), c=rint(b-1,b+2), d=rint(c+2,9);
+  return [{a,b,lc:Math.random()<.5,rc:Math.random()<.5},{a:c,b:d,lc:Math.random()<.5,rc:Math.random()<.5}];
+}
+function union(A,B){let arr=[A,B].sort((x,y)=>x.a-y.a); A=arr[0]; B=arr[1];
+  const gap = A.b < B.a || (A.b===B.a && !A.rc && !B.lc);
+  if(gap) return [A,B];
+  let end, rc; if(A.b>B.b){end=A.b; rc=A.rc}else if(B.b>A.b){end=B.b; rc=B.rc}else{end=A.b; rc=A.rc||B.rc}
+  return [{a:A.a,b:end,lc:A.lc,rc}];
+}
+function inter(A,B){let a,lc,b,rc; if(A.a>B.a){a=A.a;lc=A.lc}else if(B.a>A.a){a=B.a;lc=B.lc}else{a=A.a;lc=A.lc&&B.lc}
+ if(A.b<B.b){b=A.b;rc=A.rc}else if(B.b<A.b){b=B.b;rc=B.rc}else{b=A.b;rc=A.rc&&B.rc}
+ if(a>b || (a===b && !(lc&&rc))) return {empty:true}; return [{a,b,lc,rc}];}
+function comp(I){let S=[]; if(I.a!==-Infinity)S.push({a:-Infinity,b:I.a,lc:false,rc:!I.lc}); if(I.b!==Infinity)S.push({a:I.b,b:Infinity,lc:!I.rc,rc:false}); if(!S.length)return {empty:true}; return S;}
+function sameSetStr(A,B){return setToText(A.empty?A:A).replace(/\s/g,'')===setToText(B.empty?B:B).replace(/\s/g,'')}
+function svgSet(S,w=460,h=95){
+  if(S.empty) S=[]; const intervals=S.empty?[]:S;
+  const finite=[]; intervals.forEach(I=>{if(isFinite(I.a))finite.push(I.a); if(isFinite(I.b))finite.push(I.b)});
+  let min=finite.length?Math.min(...finite)-2:-6, max=finite.length?Math.max(...finite)+2:6; min=Math.min(min,-8); max=Math.max(max,8);
+  const pad=42, y=48, x=v=>pad+(v-min)*(w-2*pad)/(max-min);
+  let svg=`<svg class="numline" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">`;
+  svg+=`<defs><marker id="arrR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#142033"/></marker><marker id="arrL" markerWidth="10" markerHeight="10" refX="1" refY="3" orient="auto"><path d="M9,0 L9,6 L0,3 z" fill="#142033"/></marker></defs>`;
+  svg+=`<line x1="${pad}" y1="${y}" x2="${w-pad}" y2="${y}" stroke="#142033" stroke-width="2" marker-start="url(#arrL)" marker-end="url(#arrR)"/>`;
+  for(let t=Math.ceil(min);t<=Math.floor(max);t++){ if(t%2===0 || finite.includes(t)){let xx=x(t); svg+=`<line x1="${xx}" y1="${y-5}" x2="${xx}" y2="${y+5}" stroke="#54657c"/><text x="${xx}" y="${y+22}" font-size="12" text-anchor="middle" fill="#293a52">${t}</text>` }}
+  intervals.forEach(I=>{
+    let x1=I.a===-Infinity?pad:x(I.a), x2=I.b===Infinity?w-pad:x(I.b);
+    let mStart=I.a===-Infinity?' marker-start="url(#arrL)"':''; let mEnd=I.b===Infinity?' marker-end="url(#arrR)"':'';
+    svg+=`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#2457c5" stroke-width="7" stroke-linecap="round"${mStart}${mEnd}/>`;
+    if(I.a!==-Infinity){svg+=`<circle cx="${x1}" cy="${y}" r="7" fill="${I.lc?'#2457c5':'#fff'}" stroke="#2457c5" stroke-width="3"/>`}
+    if(I.b!==Infinity){svg+=`<circle cx="${x2}" cy="${y}" r="7" fill="${I.rc?'#2457c5':'#fff'}" stroke="#2457c5" stroke-width="3"/>`}
+    if(I.a===-Infinity) svg+=`<text x="${pad+8}" y="${y-17}" font-size="15" fill="#2457c5">-∞</text>`;
+    if(I.b===Infinity) svg+=`<text x="${w-pad-24}" y="${y-17}" font-size="15" fill="#2457c5">+∞</text>`;
+  });
+  svg+='</svg>'; return `<div class="graphBox">${svg}</div>`;
+}
+function distractIntervals(I){
+ let opts=[I];
+ function add(J){if(!opts.some(o=>intervalStr(o)===intervalStr(J))) opts.push(J)}
+ add({...I,lc:!I.lc}); add({...I,rc:!I.rc}); add({...I,lc:!I.lc,rc:!I.rc});
+ if(I.a!==-Infinity && I.b!==Infinity) add({a:I.a-1,b:I.b,lc:I.lc,rc:I.rc});
+ if(I.a===-Infinity) add({a:I.b,b:Infinity,lc:I.rc,rc:false});
+ if(I.b===Infinity) add({a:-Infinity,b:I.a,lc:false,rc:I.lc});
+ return shuffle(opts).slice(0,4);
+}
+function textOptions(correct, wrongs){let opts=shuffle([correct,...wrongs.filter(w=>w!==correct)]); return opts.slice(0,4).map(v=>({kind:'text',value:v,correct:v===correct}))}
+function graphOptions(correctSet){
+ let I=correctSet[0] || randFiniteInterval(); let variants=[];
+ if(correctSet.empty){variants=[{empty:true},[randFiniteInterval()],[randHalfInterval()],union(randFiniteInterval(),randHalfInterval())]} else if(correctSet.length===1){variants=distractIntervals(I).map(x=>[x]);} else {variants=[correctSet,[correctSet[1],correctSet[0]],[{...correctSet[0],rc:!correctSet[0].rc},correctSet[1]],[correctSet[0],{...correctSet[1],lc:!correctSet[1].lc}]];}
+ let cstr=setToText(correctSet); let uniq=[]; variants.forEach(v=>{let s=setToText(v); if(!uniq.some(u=>setToText(u)===s))uniq.push(v)});
+ while(uniq.length<4)uniq.push([randInterval(true)]);
+ return shuffle(uniq.slice(0,4)).map(v=>({kind:'graph',value:v,correct:setToText(v)===cstr}));
+}
+function buildQuestion(tipo){
+ if(tipo==='aleatorio') tipo=sample(temas);
+ if(tipo==='escritura'){
+   const I=randInterval(true); const mode=sample(['intervaloAcomprension','desigualdadAintervalo','comprensionAintervalo']);
+   let q,correct,wrongs,sol;
+   if(mode==='intervaloAcomprension'){q=`Seleccione la escritura por comprensión que representa el intervalo <span class="math">${intervalStr(I)}</span>.`; correct=setStr(I); wrongs=distractIntervals(I).slice(1).map(setStr);}
+   else if(mode==='desigualdadAintervalo'){q=`Seleccione el intervalo que representa la desigualdad <span class="math">${ineqStr(I)}</span>.`; correct=intervalStr(I); wrongs=distractIntervals(I).slice(1).map(intervalStr);}
+   else {q=`Seleccione el intervalo que representa la escritura <span class="math">${setStr(I)}</span>.`; correct=intervalStr(I); wrongs=distractIntervals(I).slice(1).map(intervalStr);}
+   sol=`La representación correcta corresponde al mismo conjunto de números reales:<br><span class="math">${intervalStr(I)}</span><br><span class="math">${ineqStr(I)}</span><br><span class="math">${setStr(I)}</span>`;
+   return {tipo,q,graph:'',options:textOptions(correct,wrongs),sol};
+ }
+ if(tipo==='grafica'){
+   const I=randInterval(true); const start=sample(['intervalo','desigualdad','comprension']);
+   let texto=start==='intervalo'?intervalStr(I):(start==='desigualdad'?ineqStr(I):setStr(I));
+   return {tipo,q:`Seleccione la representación gráfica de <span class="math">${texto}</span>.`,graph:'',options:graphOptions([I]),sol:`La gráfica correcta representa <span class="math">${intervalStr(I)}</span>. Los extremos abiertos se dibujan con círculo sin rellenar, los cerrados con círculo relleno y los intervalos infinitos con flecha.`};
+ }
+ if(tipo==='desdeGrafica'){
+   const I=randInterval(true); const ask=sample(['intervalo','comprension']);
+   let correct=ask==='intervalo'?intervalStr(I):setStr(I); let wrongs=distractIntervals(I).slice(1).map(ask==='intervalo'?intervalStr:setStr);
+   return {tipo,q:`Observe la representación gráfica y marque la opción correcta.`,graph:svgSet([I]),options:textOptions(correct,wrongs),sol:`La gráfica corresponde a <span class="math">${intervalStr(I)}</span>, es decir, <span class="math">${setStr(I)}</span>.`};
+ }
+ if(tipo==='union' || tipo==='interseccion'){
+   let A,B; if(Math.random()<.35){A=randHalfInterval(); B=randFiniteInterval()} else [A,B]=relatedIntervals();
+   const res=tipo==='union'?union(A,B):inter(A,B); const asksGraph=Math.random()<.45;
+   let q=`Dados <span class="math">A=${intervalStr(A)}</span> y <span class="math">B=${intervalStr(B)}</span>, seleccione ${tipo==='union'?'A ∪ B':'A ∩ B'}.`;
+   let options=asksGraph?graphOptions(res):textOptions(setToText(res),[setToText(union(A,B)),setToText(inter(A,B)),setToText(comp(A)),setToText(comp(B))].filter(x=>x!==setToText(res)));
+   if(asksGraph) q+=`<br><span class="small">Marque la gráfica del resultado.</span>`;
+   let sol=tipo==='union'?`En la unión se toman los valores que pertenecen a A o a B.<br><span class="math">A ∪ B = ${setToText(res)}</span>`:`En la intersección se toman solo los valores comunes de A y B.<br><span class="math">A ∩ B = ${setToText(res)}</span>`;
+   return {tipo,q,graph:'',options,sol};
+ }
+ if(tipo==='complemento'){
+   const I=randInterval(true); const res=comp(I); const asksGraph=Math.random()<.45;
+   let q=`Sea <span class="math">A=${intervalStr(I)}</span>. Seleccione el complemento de A en ℝ.`;
+   let options=asksGraph?graphOptions(res):textOptions(setToText(res),[intervalStr(I),setToText(comp({...I,lc:!I.lc,rc:I.rc})),setToText(comp({...I,lc:I.lc,rc:!I.rc})),']-∞, +∞['].filter(x=>x!==setToText(res)));
+   if(asksGraph) q+=`<br><span class="small">Marque la gráfica del resultado.</span>`;
+   return {tipo,q,graph:'',options,sol:`El complemento contiene todos los reales que no pertenecen a A.<br><span class="math">A^c = ℝ - A = ${setToText(res)}</span>`};
+ }
+}
+function render(q){
+ actual=q; document.getElementById('temaActual').textContent=nombres[q.tipo]||'Ejercicio';
+ document.getElementById('pregunta').innerHTML=q.q; document.getElementById('graficoPregunta').innerHTML=q.graph||'';
+ const cont=document.getElementById('opciones'); cont.innerHTML='';
+ q.options.forEach((op,i)=>{let div=document.createElement('label'); div.className='option'; div.innerHTML=`<input type="radio" name="opcion" value="${i}"><span class="xbox"></span><div><span class="choiceLetter">${letras[i]}.</span> ${op.kind==='graph'?svgSet(op.value,360,82):`<span class="math">${op.value}</span>`}</div>`; cont.appendChild(div)});
+ document.getElementById('resultado').innerHTML=''; const sol=document.getElementById('solucion'); sol.className='solution'; sol.innerHTML=q.sol;
+}
+function nuevaPregunta(){render(buildQuestion(document.getElementById('tipo').value))}
+function calificar(){const sel=document.querySelector('input[name="opcion"]:checked'); if(!sel){document.getElementById('resultado').innerHTML='<span class="bad">Debe marcar una opción.</span>';return} const idx=+sel.value; document.querySelectorAll('.option').forEach((el,i)=>{el.classList.remove('correct','wrong'); if(actual.options[i].correct)el.classList.add('correct'); if(i===idx && !actual.options[i].correct)el.classList.add('wrong')}); document.getElementById('resultado').innerHTML=actual.options[idx].correct?'<span class="good">Correcto.</span>':'<span class="bad">Incorrecto. Revise la opción marcada en verde.</span>'}
+function mostrarSolucion(){document.getElementById('solucion').classList.add('show')}
+function pdfQuestionHtml(q,i,conSol){
+ let html=`<div class="pdfItem"><b>${i}. ${nombres[q.tipo]}</b><div>${q.q}</div>${q.graph||''}<div class="pdfOptions">`;
+ q.options.forEach((op,j)=>{html+=`<div class="pdfOption">☐ ${letras[j]}. ${op.kind==='graph'?svgSet(op.value,330,75):`<span class="math">${op.value}</span>`}</div>`});
+ html+=`</div>`; if(conSol){let corr=q.options.findIndex(o=>o.correct); html+=`<div class="pdfSol"><b>Solución:</b> opción ${letras[corr]}.<br>${q.sol}</div>`} html+=`</div>`; return html;
+}
+function generarPDF(conSol){
+ const qs=[]; const orden=['escritura','grafica','desdeGrafica','union','interseccion','complemento','escritura','grafica','union','complemento']; for(let t of orden) qs.push(buildQuestion(t));
+ const area=document.getElementById('pdfArea'); area.style.display='block'; area.innerHTML=`<div class="pdfPage"><div class="pdfTitle"><h2>Intervalos de números reales</h2><div>Instrucción: marque con X la opción correcta.</div></div>${qs.map((q,i)=>pdfQuestionHtml(q,i+1,conSol)).join('')}<div class="footerNote">Generado automáticamente</div></div>`;
+ const opt={margin:0.35,filename:conSol?'intervalos_con_soluciones.pdf':'intervalos_sin_soluciones.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'in',format:'letter',orientation:'portrait'}};
+ html2pdf().set(opt).from(area).save().then(()=>{area.style.display='none'});
+}
+window.onload=nuevaPregunta;
+</script>
+</body>
+</html>
