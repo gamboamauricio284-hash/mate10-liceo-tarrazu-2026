@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relaciones que son funciones</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --primary:#1f5fbf;
+      --primary-dark:#16488f;
+      --ok:#17803d;
+      --bad:#c62828;
+      --warn:#b45309;
+      --text:#1d2433;
+      --muted:#667085;
+      --line:#d0d7e2;
+      --soft:#eaf1ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(135deg,#f4f7fb,#eaf1ff);
+      color:var(--text);
+    }
+    header{
+      background:var(--primary);
+      color:white;
+      padding:22px 16px;
+      text-align:center;
+    }
+    header h1{margin:0;font-size:1.8rem}
+    header p{margin:8px 0 0;font-size:1rem}
+    main{
+      max-width:1050px;
+      margin:22px auto;
+      padding:0 14px 40px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:0 8px 24px rgba(20,40,80,.12);
+      padding:20px;
+      margin-bottom:18px;
+    }
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .badge{
+      background:var(--soft);
+      color:var(--primary-dark);
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:bold;
+    }
+    .instructions{
+      line-height:1.5;
+      color:#344054;
+    }
+    button{
+      border:0;
+      border-radius:12px;
+      padding:12px 16px;
+      font-size:1rem;
+      font-weight:bold;
+      cursor:pointer;
+      background:var(--primary);
+      color:white;
+      transition:.2s;
+    }
+    button:hover{background:var(--primary-dark)}
+    button.secondary{
+      background:#eef2f7;
+      color:#243047;
+    }
+    button.secondary:hover{background:#dfe6f0}
+    .answer-options{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-top:18px;
+      justify-content:center;
+    }
+    .answer-card{
+      flex:1 1 220px;
+      max-width:330px;
+      border:3px solid #d6dee9;
+      border-radius:16px;
+      padding:16px;
+      text-align:center;
+      background:#f8fafc;
+      color:#243047;
+      cursor:pointer;
+      font-weight:bold;
+      font-size:1.08rem;
+      user-select:none;
+    }
+    .answer-card:hover{
+      border-color:var(--primary);
+      background:#eef5ff;
+    }
+    .answer-card.selected{
+      border-color:var(--primary);
+      background:#dfeaff;
+      box-shadow:0 0 0 3px rgba(31,95,191,.15);
+    }
+    .feedback{
+      margin-top:16px;
+      padding:14px;
+      border-radius:12px;
+      font-weight:bold;
+      display:none;
+    }
+    .ok{background:#e8f6ee;color:var(--ok);display:block}
+    .bad{background:#fdeaea;color:var(--bad);display:block}
+    .warn{background:#fff7ed;color:var(--warn);display:block}
+    .explain{
+      margin-top:8px;
+      font-weight:normal;
+      color:#344054;
+      line-height:1.45;
+    }
+    table{
+      border-collapse:collapse;
+      margin:16px auto;
+      min-width:280px;
+      font-size:1.15rem;
+    }
+    th,td{
+      border:2px solid var(--line);
+      padding:10px 18px;
+      text-align:center;
+    }
+    th{
+      background:var(--soft);
+      color:var(--primary-dark);
+    }
+    .canvas-wrap,.venn-wrap{
+      display:flex;
+      justify-content:center;
+      overflow:auto;
+      margin-top:10px;
+    }
+    canvas, svg{
+      background:white;
+      border:1px solid #d9e1ec;
+      border-radius:14px;
+      max-width:100%;
+    }
+    .small{
+      color:var(--muted);
+      font-size:.95rem;
+    }
+    .footer-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      margin-top:18px;
+    }
+    .review{
+      background:#0f766e;
+    }
+    .review:hover{
+      background:#115e59;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Práctica: ¿la relación es función?</h1>
+  <p>Tablas de valores, gráficas y diagramas de Venn</p>
+</header>
+
+<main>
+  <section class="card">
+    <div class="topbar">
+      <span class="badge" id="typeBadge">Ejercicio</span>
+      <span class="badge" id="scoreBadge">Puntaje: 0 / 0</span>
+    </div>
+    <p class="instructions">
+      Una relación es función si cada valor de entrada tiene una única salida.
+      En una tabla o diagrama, revisa si algún elemento del dominio se repite con diferentes imágenes.
+      En una gráfica, aplica la prueba de la recta vertical.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2 id="questionTitle">Presiona “Nuevo ejercicio” para iniciar.</h2>
+    <div id="exerciseArea"></div>
+
+    <div class="answer-options">
+      <button type="button" class="answer-card" id="yesCard" onclick="selectAnswer(true)">Sí, es función</button>
+      <button type="button" class="answer-card" id="noCard" onclick="selectAnswer(false)">No, no es función</button>
+    </div>
+
+    <div class="footer-actions">
+      <button class="review" onclick="reviewAnswer()">Revisar respuesta</button>
+      <button onclick="newExercise()">Nuevo ejercicio</button>
+      <button class="secondary" onclick="resetScore()">Reiniciar puntaje</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+  </section>
+</main>
+
+<script>
+let currentAnswer = null;
+let currentExplanation = "";
+let selectedAnswer = null;
+let score = 0;
+let total = 0;
+let reviewed = false;
+
+const exerciseArea = document.getElementById("exerciseArea");
+const questionTitle = document.getElementById("questionTitle");
+const typeBadge = document.getElementById("typeBadge");
+const scoreBadge = document.getElementById("scoreBadge");
+const feedback = document.getElementById("feedback");
+const yesCard = document.getElementById("yesCard");
+const noCard = document.getElementById("noCard");
+
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function choice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(arr){ return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]); }
+
+function updateScore(){
+  scoreBadge.textContent = `Puntaje: ${score} / ${total}`;
+}
+
+function clearSelection(){
+  selectedAnswer = null;
+  yesCard.classList.remove("selected");
+  noCard.classList.remove("selected");
+}
+
+function selectAnswer(value){
+  if(reviewed) return;
+  selectedAnswer = value;
+  yesCard.classList.toggle("selected", value === true);
+  noCard.classList.toggle("selected", value === false);
+}
+
+function reviewAnswer(){
+  if(currentAnswer === null) return;
+
+  if(selectedAnswer === null){
+    feedback.style.display = "block";
+    feedback.className = "feedback warn";
+    feedback.innerHTML = `Primero selecciona una respuesta.`;
+    return;
+  }
+
+  if(reviewed) return;
+  reviewed = true;
+  total++;
+
+  feedback.style.display = "block";
+  if(selectedAnswer === currentAnswer){
+    score++;
+    feedback.className = "feedback ok";
+    feedback.innerHTML = `Correcto.<div class="explain">${currentExplanation}</div>`;
+  }else{
+    feedback.className = "feedback bad";
+    feedback.innerHTML = `Incorrecto.<div class="explain">${currentExplanation}</div>`;
+  }
+  updateScore();
+}
+
+function resetScore(){
+  score = 0;
+  total = 0;
+  updateScore();
+  feedback.style.display = "none";
+  feedback.className = "feedback";
+  feedback.innerHTML = "";
+}
+
+function newExercise(){
+  reviewed = false;
+  clearSelection();
+  feedback.style.display = "none";
+  feedback.className = "feedback";
+  feedback.innerHTML = "";
+
+  const type = choice(["tabla","grafica","venn"]);
+  if(type === "tabla") makeTableExercise();
+  if(type === "grafica") makeGraphExercise();
+  if(type === "venn") makeVennExercise();
+}
+
+/* 1. TABLAS */
+function makeTableExercise(){
+  typeBadge.textContent = "Tabla de valores";
+  questionTitle.textContent = "Observa la tabla. ¿La relación es función?";
+
+  const isFunction = Math.random() < 0.55;
+  let pairs = [];
+  let usedPairs = new Set();
+  let conflictX = null;
+  let conflictY1 = null;
+  let conflictY2 = null;
+
+  if(isFunction){
+    let xs = shuffle([-5,-4,-3,-2,-1,0,1,2,3,4,5]).slice(0,5);
+    xs.forEach(x=>{
+      let y = randInt(-5,5);
+      pairs.push([x,y]);
+      usedPairs.add(`${x},${y}`);
+    });
+  }else{
+    conflictX = randInt(-4,4);
+    conflictY1 = randInt(-5,5);
+    conflictY2 = randInt(-5,5);
+    while(conflictY2 === conflictY1) conflictY2 = randInt(-5,5);
+
+    pairs.push([conflictX,conflictY1]);
+    pairs.push([conflictX,conflictY2]);
+    usedPairs.add(`${conflictX},${conflictY1}`);
+    usedPairs.add(`${conflictX},${conflictY2}`);
+
+    while(pairs.length < 5){
+      let x = randInt(-5,5);
+      let y = randInt(-5,5);
+      let key = `${x},${y}`;
+      if(!usedPairs.has(key)){
+        pairs.push([x,y]);
+        usedPairs.add(key);
+      }
+    }
+  }
+
+  pairs = shuffle(pairs);
+
+  let html = `<p class="small">En la tabla no se repiten pares ordenados exactamente iguales. Debes revisar si una misma entrada x tiene dos salidas diferentes.</p>`;
+  html += `<table><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
+  pairs.forEach(p=> html += `<tr><td>${p[0]}</td><td>${p[1]}</td></tr>`);
+  html += `</tbody></table>`;
+
+  exerciseArea.innerHTML = html;
+  currentAnswer = isFunction;
+  currentExplanation = isFunction
+    ? "Sí es función, porque cada valor de x aparece asociado con una sola imagen. Aunque se repitiera algún valor de y, eso no impide que sea función."
+    : `No es función, porque el valor de entrada x = ${conflictX} tiene dos salidas diferentes: y = ${conflictY1} y y = ${conflictY2}.`;
+}
+
+/* 2. GRÁFICAS */
+function makeGraphExercise(){
+  typeBadge.textContent = "Gráfica";
+  questionTitle.textContent = "Observa la gráfica. ¿La relación es función?";
+
+  const cases = [
+    {name:"lineal", isFunction:true, reason:"La gráfica pasa la prueba de la recta vertical: cualquier recta vertical la corta como máximo una vez."},
+    {name:"parabola", isFunction:true, reason:"La parábola vertical sí es función, porque para cada x hay una única imagen y."},
+    {name:"puntosFuncion", isFunction:true, reason:"Sí es función, porque no hay dos puntos con la misma coordenada x y diferente coordenada y."},
+    {name:"circulo", isFunction:false, reason:"No es función, porque algunas rectas verticales cortan la circunferencia en dos puntos."},
+    {name:"vertical", isFunction:false, reason:"No es función, porque una recta vertical tiene el mismo valor de x para muchos valores de y."},
+    {name:"puntosNoFuncion", isFunction:false, reason:"No es función, porque hay dos puntos con la misma coordenada x y diferentes coordenadas y."}
+  ];
+  const selected = choice(cases);
+  currentAnswer = selected.isFunction;
+
+  exerciseArea.innerHTML = `<p class="small">Usa la prueba de la recta vertical: si alguna recta vertical corta la gráfica en más de un punto, no es función.</p>
+  <div class="canvas-wrap"><canvas id="graph" width="520" height="420"></canvas></div>`;
+
+  drawGraph(selected.name);
+  currentExplanation = selected.reason;
+}
+
+function drawGrid(ctx,w,h){
+  ctx.clearRect(0,0,w,h);
+  const ox=w/2, oy=h/2, scale=35;
+  ctx.lineWidth=1;
+  ctx.strokeStyle="#e4e9f2";
+  for(let x=ox%scale; x<w; x+=scale){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=oy%scale; y<h; y+=scale){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+
+  ctx.strokeStyle="#2f3a4a";
+  ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(w,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,h);ctx.stroke();
+
+  ctx.fillStyle="#2f3a4a";
+  ctx.font="13px Arial";
+  for(let i=-7;i<=7;i++){
+    if(i!==0){
+      ctx.fillText(i, ox+i*scale-4, oy+16);
+      ctx.fillText(i, ox+6, oy-i*scale+4);
+    }
+  }
+  ctx.fillText("x", w-18, oy-8);
+  ctx.fillText("y", ox+8, 18);
+  return {ox,oy,scale};
+}
+function toCanvas(pt,sys){ return [sys.ox+pt[0]*sys.scale, sys.oy-pt[1]*sys.scale]; }
+
+function drawPoint(ctx,x,y,sys){
+  const [cx,cy]=toCanvas([x,y],sys);
+  ctx.beginPath();ctx.arc(cx,cy,6,0,Math.PI*2);ctx.fill();
+}
+
+function drawGraph(kind){
+  const c=document.getElementById("graph");
+  const ctx=c.getContext("2d");
+  const sys=drawGrid(ctx,c.width,c.height);
+
+  ctx.strokeStyle="#1f5fbf";
+  ctx.fillStyle="#1f5fbf";
+  ctx.lineWidth=4;
+
+  if(kind==="lineal"){
+    ctx.beginPath();
+    let m=choice([-1,0.5,1,1.5]);
+    let b=randInt(-2,2);
+    for(let x=-7;x<=7;x+=0.1){
+      let y=m*x+b;
+      let [cx,cy]=toCanvas([x,y],sys);
+      if(x===-7)ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+    }
+    ctx.stroke();
+  }
+
+  if(kind==="parabola"){
+    ctx.beginPath();
+    let a=choice([0.25,0.35,-0.25]);
+    let h=randInt(-2,2);
+    let k=randInt(-2,2);
+    for(let x=-7;x<=7;x+=0.1){
+      let y=a*(x-h)*(x-h)+k;
+      let [cx,cy]=toCanvas([x,y],sys);
+      if(x===-7)ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+    }
+    ctx.stroke();
+  }
+
+  if(kind==="circulo"){
+    const [cx,cy]=toCanvas([0,0],sys);
+    ctx.beginPath();
+    ctx.arc(cx,cy,3*sys.scale,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  if(kind==="vertical"){
+    let x=randInt(-3,3);
+    let [cx1,cy1]=toCanvas([x,-5],sys);
+    let [cx2,cy2]=toCanvas([x,5],sys);
+    ctx.beginPath();ctx.moveTo(cx1,cy1);ctx.lineTo(cx2,cy2);ctx.stroke();
+  }
+
+  if(kind==="puntosFuncion"){
+    let xs=shuffle([-5,-4,-3,-2,-1,0,1,2,3,4,5]).slice(0,6);
+    xs.forEach(x=>drawPoint(ctx,x,randInt(-4,4),sys));
+  }
+
+  if(kind==="puntosNoFuncion"){
+    let x=randInt(-3,3);
+    let y1=randInt(-4,0);
+    let y2=randInt(1,4);
+    drawPoint(ctx,x,y1,sys);
+    drawPoint(ctx,x,y2,sys);
+    let xs=shuffle([-5,-4,-3,-2,-1,1,2,3,4,5].filter(v=>v!==x)).slice(0,4);
+    xs.forEach(v=>drawPoint(ctx,v,randInt(-4,4),sys));
+  }
+}
+
+/* 3. DIAGRAMAS DE VENN */
+function makeVennExercise(){
+  typeBadge.textContent = "Diagrama de Venn";
+  questionTitle.textContent = "Observa el diagrama. ¿La relación es función?";
+
+  const isFunction = Math.random() < 0.55;
+  currentAnswer = isFunction;
+
+  const domain = ["A","B","C","D"];
+  const range = ["1","2","3","4"];
+  let arrows = [];
+  let repeated = null;
+  let y1 = null;
+  let y2 = null;
+
+  if(isFunction){
+    domain.forEach(d=> arrows.push([d, choice(range)]));
+  }else{
+    repeated = choice(domain);
+    y1 = choice(range);
+    y2 = choice(range.filter(r=>r!==y1));
+    arrows.push([repeated,y1], [repeated,y2]);
+    domain.filter(d=>d!==repeated).slice(0,3).forEach(d=> arrows.push([d, choice(range)]));
+  }
+
+  exerciseArea.innerHTML = `<p class="small">Revisa si algún elemento del conjunto de partida tiene más de una flecha saliendo.</p>
+  <div class="venn-wrap">
+    <svg id="venn" width="650" height="360" viewBox="0 0 650 360"></svg>
+  </div>`;
+
+  drawVenn(domain, range, arrows);
+
+  currentExplanation = isFunction
+    ? "Sí es función, porque de cada elemento del dominio sale exactamente una flecha. Se permite que dos elementos diferentes lleguen al mismo valor."
+    : `No es función, porque del elemento ${repeated} salen dos flechas hacia valores diferentes: ${y1} y ${y2}.`;
+}
+
+function drawVenn(domain, range, arrows){
+  const svg=document.getElementById("venn");
+  svg.innerHTML = `
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#1f5fbf"></path>
+      </marker>
+    </defs>
+    <ellipse cx="160" cy="180" rx="105" ry="145" fill="#eaf1ff" stroke="#1f5fbf" stroke-width="3"/>
+    <ellipse cx="490" cy="180" rx="105" ry="145" fill="#f6f7fb" stroke="#667085" stroke-width="3"/>
+    <text x="160" y="45" text-anchor="middle" font-size="20" font-weight="bold">Dominio</text>
+    <text x="490" y="45" text-anchor="middle" font-size="20" font-weight="bold">Codominio</text>
+  `;
+
+  const left = {};
+  const right = {};
+  domain.forEach((d,i)=> left[d] = {x:160, y:100+i*52});
+  range.forEach((r,i)=> right[r] = {x:490, y:100+i*52});
+
+  domain.forEach(d=>{
+    const p=left[d];
+    svg.innerHTML += `<circle cx="${p.x}" cy="${p.y}" r="19" fill="white" stroke="#1f5fbf" stroke-width="2"/>
+    <text x="${p.x}" y="${p.y+6}" text-anchor="middle" font-size="18" font-weight="bold">${d}</text>`;
+  });
+
+  range.forEach(r=>{
+    const p=right[r];
+    svg.innerHTML += `<circle cx="${p.x}" cy="${p.y}" r="19" fill="white" stroke="#667085" stroke-width="2"/>
+    <text x="${p.x}" y="${p.y+6}" text-anchor="middle" font-size="18" font-weight="bold">${r}</text>`;
+  });
+
+  arrows.forEach((a,idx)=>{
+    const p1=left[a[0]], p2=right[a[1]];
+    const offset = (idx % 2 === 0) ? -8 : 8;
+    svg.innerHTML += `<line x1="${p1.x+22}" y1="${p1.y+offset}" x2="${p2.x-24}" y2="${p2.y+offset}" 
+      stroke="#1f5fbf" stroke-width="3" marker-end="url(#arrow)" opacity=".9"/>`;
+  });
+}
+
+newExercise();
+</script>
+</body>
+</html>
